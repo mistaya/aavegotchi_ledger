@@ -1,0 +1,4 @@
+*export*.csv
+*result.json
+process_polygonscan_*.sh
+node_modules/

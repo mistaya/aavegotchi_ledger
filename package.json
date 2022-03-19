@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "bignumber.js": "^9.0.2",
+    "csv": "^6.0.5"
+  }
+}
