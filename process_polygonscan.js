@@ -16,9 +16,9 @@ const ADDRESS_TO_TOKEN = {
   '0x8c8bdbe9cee455732525086264a4bf9cf821c498': 'maUNI',
   '0x6e14790535c04b1a58592fbee6109d9bc57a51ad': 'VLT',
   '0xce899f26928a2b21c6a2fddd393ef37c61dba918': 'MOCA',
-  '0xe4fb1bb8423417a460286b0ed44b64e104c5fae5': 'Fake_Phishing1',
-  '0x81067076dcb7d3168ccf7036117b9d72051205e2': 'Fake_Phishing2',
-  '0x4a1a24542644d77b34497de7f218d63cb4d36e0f': 'Fake_Phishing5',
+  '0xe4fb1bb8423417a460286b0ed44b64e104c5fae5': 'Scam_Token_Zepe',
+  '0x81067076dcb7d3168ccf7036117b9d72051205e2': 'Scam_Token_DxDex',
+  '0x4a1a24542644d77b34497de7f218d63cb4d36e0f': 'Scam_Token_YUI',
   '0x8ae127d224094cb1b27e1b28a472e588cbcc7620': 'Scam_Token_AAX',
   '0x0364c8dbde082372e8d6a6137b45613dd0f8138a': 'Scam_Token1',
   '0xa39b14f57087aa5f16b941e5ec182b84a5432aa7': 'Scam_Token2',
@@ -34,14 +34,18 @@ const ADDRESS_TO_TOKEN = {
 
 const ADDRESS_TO_CONTRACT = {
   '0x86935f11c86623dec8a25696e1c19a8659cbf95d': 'Aavegotchi', // Portals, Gotchi, Wearables
-  '0xa02d547512bb90002807499f05495fe9c4c3943f': 'GotchiStaking', // Raffle tickets
+  '0xa02d547512bb90002807499f05495fe9c4c3943f': 'GotchiStaking', // Staking, Raffle tickets
+  '0x8c41492cd9f15d0ca22003aecb4b00d02e4ce8e6': 'GotchiStaking2', // Staking (Sep 2021)
   '0x1d0360bac7299c86ec8e99d0c1c9a95fefaf2a11': 'GotchiRealm', // Parcels
   '0x75c8866f47293636f1c32ecbcd9168857dbefc56': 'GotchiAirdrops', // Claimable airdrops: H1 bg, Drop tickets
   '0x6c723cac1e35fe29a175b287ae242d424c52c1ce': 'GotchiRaffles', // Raffle submission/claiming
   '0xa44c8e0ecaefe668947154ee2b803bd4e6310efe': 'GotchiGBM_Land', // Land Auction 1 (2021-10) and 2 (2021-12)
   '0x1d86852b823775267ee60d98cbcda9e8d5c2faa7': 'GotchiGBM_2021-07', // Wearables GBM 1
   '0x11111112542d85b3ef69ae05771c2dccff4faa26': '1inch',
-  '0x2953399124f0cbb46d2cbacd8a89cf0599974963': 'Scam_OpenSea'
+  '0x1111111254fb6c44bac0bed2854e76f90643097d': '1inch2',
+  '0x8dfdea6a4818d2aa7463edb9a8841cb0c04255af': 'Zapper',
+  '0xdef1c0ded9bec7f1a1670819833240f027b25eff': 'QuickSwap',
+  '0x2953399124f0cbb46d2cbacd8a89cf0599974963': 'OpenSeaCollections'
 }
 
 const CONTRACT_TO_ADDRESS = Object.fromEntries(Object.entries(ADDRESS_TO_CONTRACT).map(([id, value]) => [value, id]))
@@ -117,25 +121,6 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
   address = address.toLowerCase()
 
   await importWearables()
-
-  const data = {
-    address,
-    approvals: [],
-    reverted: [],
-    transfers: [],
-    trades: [],
-    ghstStaking: [],
-    gameActions: [],
-    pocketTransfers: [],
-    bazaarListings: [],
-    baazaarPurchases: [],
-    gbmClaims: [],
-    gbmBids: [],
-    gotchiAirdrops: [],
-    raffleSubmissions: [],
-    raffleWins: [],
-    unprocessed: []
-  }
 
   const allTransactions = {}
   const initTransaction = function (txId) {
@@ -335,21 +320,30 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
   }
 
   // Inspect and categorise transactions
-  // 1. Failed tx: main tx.errorCode = 'execution reverted'
-  // 2. Approve (or Revoke) token: main tx.method = 'Approve', also look up tx.tokenAddress to find token name
-  // 3. GHST Staking: tx.fromAddress = $self and tx.toAddress = $GotchiStaking and tx.method = 'Stake Into Pool' or 'Stake Ghst'
-  // 4. GHST Unstaking: tx.fromAddress = $self and tx.toAddress = $GotchiStaking and tx.method = 'Withdraw From Pool' or 'Withdraw Ghst Stake'
-  // 5. Game actions (without transfers): tx.fromAddress = $self and tx.toAddress = $Aavegotchi and tx.method is 'Interact', 'Equip Wearables', 'Spend Skill Points', etc
-  // 6. Gotchi Pocket transfers: tx.fromAddress = $self and tx.toAddress = $Aavegotchi and tx.method is 'transferEscrow'
-  // 7. List on Baazaar: tx.fromAddress = $self and tx.toAddress = $Aavegotchi and tx.method is 'Set ERC1155Listing' or 'Add ERC721Listing'
-  // 8. Buy on Baazaar: tx.fromAddress = $self and tx.toAddress = $Aavegotchi and tx.method is 'Execute ERC1155Listing'
-  // 9: Claim won GBM auction items: tx.fromAddress = $self and tx.toAddress matches one of $GBM_ADDRESSES and tx.method is 'Claim' or 'Batch Claim'
-  // 10. Claim Aavegotchi airdrops (Drop tickets) from $GotchiAirdrops with tx.method 'Claim For Address'
-  // 11. Claim Aavegotchi airdrops (H1 background) from $GotchiAirdrops with tx.method '0xd7cb23db'
-  // 12. Claim Raffle winnings from $GotchiRaffles with tx.method '0x57b0ef44'
-  // 13. Submit Raffle tickets to $GotchiRaffles with tx.method '0xec9fabb7'
-  // 14: Bid in GBM auction: tx.fromAddress = $self and tx.toAddress matches one of $GBM_ADDRESSES and tx.method is 'Commit Bid', 'Place Bid' or '0x544b3360' (first auction)
-  // X. Transfers: tx.method = 'Transfer' or 'Safe Transfer From'
+
+  const data = {
+    address,
+    approvals: [],
+    reverted: [],
+    deposits: [],
+    transfers: [],
+    trades: [],
+    ghstStaking: [],
+    gameActions: [],
+    pocketTransfers: [],
+    bazaarListings: [],
+    baazaarSales: [],
+    baazaarPurchases: [],
+    gbmBids: [],
+    gbmRefunds: [],
+    gbmClaims: [],
+    gotchiAirdrops: [],
+    raffleTicketClaims: [],
+    raffleSubmissions: [],
+    raffleWins: [],
+    scamAirdrops: [],
+    unprocessed: []
+  }
 
   for (const txGroup of Object.values(allTransactions)) {
     if (txGroup.main.length) {
@@ -383,7 +377,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
           console.log(`Approval for unknown token: ${tx.toAddress}`)
         }
         // console.log(`Approve ${token}`)
-      } else if (tx.fromAddress === address && tx.toAddress === CONTRACT_TO_ADDRESS['GotchiStaking'] && ['Stake Into Pool', 'Stake Ghst'].includes(tx.method)) {
+      } else if (tx.fromAddress === address && [CONTRACT_TO_ADDRESS['GotchiStaking'], CONTRACT_TO_ADDRESS['GotchiStaking2']].includes(tx.toAddress) && ['Stake Into Pool', 'Stake Ghst'].includes(tx.method)) {
         if (txGroup.erc20.length !== 1 || txGroup.erc20[0].token !== 'GHST' || txGroup.erc721.length || txGroup.erc1155.length || txGroup.internal.length) {
           console.error(`Unexpected GHST staking txGroup contents`, txGroup)
         } else {
@@ -417,6 +411,36 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
           data.ghstStaking.push(staking)
           console.log(label)
         }
+      } else if (tx.fromAddress === address && tx.toAddress === CONTRACT_TO_ADDRESS['GotchiStaking'] && ['Claim Tickets'].includes(tx.method)) {
+        if (txGroup.erc20.length || txGroup.erc721.length || !txGroup.erc1155.length || txGroup.internal.length) {
+          console.error(`Unexpected Claim Raffle Tickets txGroup contents`, txGroup)
+        } else {
+          let assignedFee = false
+          for (const erc1155tx of txGroup.erc1155) {
+            if (erc1155tx.tokenContractAddress !== CONTRACT_TO_ADDRESS['GotchiStaking']) {
+              console.error(`Unexpected erc1155 token contract in Claim Raffle Tickets tx`, txGroup)
+            } else {
+              const asset = erc1155tx.assetId
+              const assetLabel = erc1155tx.assetLabel
+              const amount = erc1155tx.tokenValue
+              const label = `Claim ${amount} ${assetLabel} (${asset})`
+              const claim = {
+                txId: tx.txId,
+                date: tx.date,
+                tokenId: erc1155tx.tokenId,
+                asset,
+                assetContractAddress: erc1155tx.tokenContractAddress,
+                assetLabel,
+                amount,
+                maticValueFee: !assignedFee ? tx.maticValueFee : '0',
+                label
+              }
+              data.raffleTicketClaims.push(claim)
+              assignedFee = true
+              console.log(label)
+            }
+          }
+        }
       } else if (tx.fromAddress === address && tx.toAddress === CONTRACT_TO_ADDRESS['GotchiStaking'] && tx.method === 'Set Approval For All') {
         const tokenAddress = CONTRACT_TO_ADDRESS['GotchiStaking']
         const firstTicketToken = CONTRACT_ERC1155[tokenAddress][0]
@@ -429,7 +453,18 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
           maticValueFee: tx.maticValueFee,
           label: 'Approve transfer of raffle tickets'
         })
-      } else if (isCallingAavegotchi && ['Open Portals', 'Claim Aavegotchi', 'Interact', 'Set Aavegotchi Name', 'Equip Wearables', 'Spend Skill Points', 'Set Pet Operator For All', 'Cancel ERC1155Listing'].includes(tx.method)) {
+      } else if (tx.fromAddress === address && tx.toAddress === CONTRACT_TO_ADDRESS['GotchiRealm'] && tx.method === 'Set Approval For All') {
+        data.approvals.push({
+          txId: tx.txId,
+          date: tx.date,
+          fromAddress: tx.fromAddress,
+          tokenAddress: tx.toAddress,
+          token: 'GotchiRealm',
+          maticValueFee: tx.maticValueFee,
+          label: 'Approve transfer of GotchiRealm'
+        })
+      } else if (isCallingAavegotchi && ['Open Portals', 'Claim Aavegotchi', 'Interact', 'Set Aavegotchi Name', 'Equip Wearables',
+          'Spend Skill Points', 'Set Pet Operator For All', 'Cancel ERC721Listing', 'Cancel ERC1155Listing'].includes(tx.method)) {
         const label = tx.method
         const action = {
           txId: tx.txId,
@@ -503,13 +538,21 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
           let assetId = ''
           let assetLabel = ''
           let amount = '0'
+          let acquired = []
           if (txGroup.erc721.length === 1) {
             const erc721tx = txGroup.erc721[0]
-            assetId = erc721tx.assetId
-            assetLabel = erc721tx.assetLabel
-            amount = '1'
             if (erc721tx.toAddress !== address) {
               console.error(`Unexpected toAddress found in Baazaar sale ${erc721tx.toAddress}`, erc721tx)
+            } else {
+              assetId = erc721tx.assetId
+              assetLabel = erc721tx.assetLabel
+              amount = '1'
+              acquired.push({
+                assetId,
+                assetLabel,
+                assetContractAddress: erc721tx.tokenContractAddress,
+                amount
+              })
             }
           } else if (txGroup.erc1155.length) {
             // Normally there is only 1 entry, but sometimes the export includes 2 (duplicates): ignore the 2nd
@@ -518,22 +561,34 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
               console.warn(`Warning: found multiple ERC1155 records for Baazaar sale - only using the first (tx: ${tx.txId})`)
             }
             const erc1155tx = txGroup.erc1155[0]
-            assetId = erc1155tx.assetId
-            assetLabel = erc1155tx.assetLabel
-            amount = erc1155tx.tokenValue
             if (erc1155tx.toAddress !== address) {
               console.error(`Unexpected toAddress found in Baazaar sale ${erc1155tx.toAddress}`, erc1155tx)
+            } else {
+              assetId = erc1155tx.assetId
+              assetLabel = erc1155tx.assetLabel
+              amount = erc1155tx.tokenValue
+              acquired.push({
+                tokenId: erc1155tx.tokenId,
+                assetId,
+                assetLabel,
+                assetContractAddress: erc1155tx.tokenContractAddress,
+                amount
+              })
             }
           }
           const label = `Buy ${amount} ${assetLabel} (${assetId}) on Baazaar for ${totalGhst} GHST`
           const purchase = {
             txId: tx.txId,
             date: tx.date,
-            ghstAmount: totalGhst,
-            assetId,
-            assetLabel,
-            amount,
-            maticValueFee: tx.maticValueFee,
+            acquired,
+            disposed: [{
+              asset: 'GHST',
+              amount: totalGhst   // TODO string!
+            }],
+            fees: [{
+              asset: 'MATIC',
+              amount: tx.maticValueFee
+            }],
             type: 'Baazaar Purchase',
             label
           }
@@ -666,8 +721,10 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
             data.raffleSubmissions.push({
               txId: tx.txId,
               date: tx.date,
+              tokenId: erc1155tx.tokenId,
               assetId,
               assetLabel,
+              assetContractAddress: erc1155tx.tokenContractAddress,
               amount,
               maticValueFee: !assignedFee ? tx.maticValueFee : '0',
               label
@@ -678,17 +735,20 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
         }
         console.groupEnd()
       } else if (tx.fromAddress === address && GBM_CONTRACT_ADDRESSES.includes(tx.toAddress) && ['Commit Bid', 'Place Bid', '0x544b3360'].includes(tx.method)) {
-        if (txGroup.erc20.length !== 1 || txGroup.erc721.length || txGroup.erc1155.length || txGroup.internal.length) {
+        if (txGroup.erc721.length || txGroup.erc1155.length || txGroup.internal.length) {
           console.error(`Unexpected GBM bid txGroup contents`, txGroup)
-          // TODO handle outbidding self (?) where there are 2 erc20, one out and one in 0x223a097bd2c670f76af64bea81ecfd561263bc2fda220ea94b45758f4c9026fb
-        } else if (txGroup.erc20[0].fromAddress !== address) {
-          console.error(`Unexpected GBM bid erc20 fromAddress`, txGroup)
-        } else if (txGroup.erc20[0].token !== 'GHST') {
-          console.error(`Unexpected GBM bid erc20 token`, txGroup)
-        } else {
-          const erc20tx = txGroup.erc20[0]
-          const amount = erc20tx.tokenValue
-          const label = `Bid ${amount} GHST in GBM ${tx.date}`
+        // spot edge case: outbidding self (?) where there are 2 erc20, one out and one in
+        } else if (txGroup.erc20.length === 2 &&
+          txGroup.erc20[0].fromAddress === address &&
+          txGroup.erc20[1].toAddress === address &&
+          txGroup.erc20[0].token === 'GHST' &&
+          txGroup.erc20[1].token === 'GHST' &&
+          txGroup.erc20[0].tokenValue - 0 > txGroup.erc20[1].tokenValue - 0
+        ) {
+          // new bid tx
+          let erc20tx = txGroup.erc20[0]
+          let amount = erc20tx.tokenValue
+          let label = `Bid ${amount} GHST in GBM`
           data.gbmBids.push({
             txId: tx.txId,
             date: tx.date,
@@ -697,6 +757,120 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
             label
           })
           console.log(label)
+
+          // old bid refund tx
+          erc20tx = txGroup.erc20[1]
+          amount = erc20tx.tokenValue
+          label = `Receive GBM bid refund: ${amount} GHST`
+          data.gbmRefunds.push({
+            txId: tx.txId,
+            date: tx.date,
+            ghstAmount: amount,
+            bidTxId: null,
+            bidReward: null,
+            label
+          })
+          console.log(label)
+        } else if (txGroup.erc20.length !== 1) {
+          console.error(`Unexpected GBM bid erc20 contents`, txGroup)
+        } else if (txGroup.erc20[0].fromAddress !== address) {
+          console.error(`Unexpected GBM bid erc20 fromAddress`, txGroup)
+        } else if (txGroup.erc20[0].token !== 'GHST') {
+          console.error(`Unexpected GBM bid erc20 token`, txGroup)
+        } else {
+          const erc20tx = txGroup.erc20[0]
+          const amount = erc20tx.tokenValue
+          const label = `Bid ${amount} GHST in GBM`
+          data.gbmBids.push({
+            txId: tx.txId,
+            date: tx.date,
+            ghstAmount: amount,
+            maticValueFee: tx.maticValueFee,
+            label
+          })
+          console.log(label)
+        }
+      } else if (
+          tx.fromAddress === address &&
+          [CONTRACT_TO_ADDRESS['1inch'], CONTRACT_TO_ADDRESS['1inch2'], CONTRACT_TO_ADDRESS['Zapper'], CONTRACT_TO_ADDRESS['QuickSwap']].includes(tx.toAddress) &&
+          ['0x7c025200', 'Zap Out', '0x415565b0'].includes(tx.method)
+        ) {
+        if (txGroup.erc721.length || txGroup.erc1155.length) {
+          console.error(`Unexpected trade erc721/erc1155 txGroup contents`, txGroup)
+        } else {
+          const trade = ({
+            txId: tx.txId,
+            date: tx.date,
+            label: `Trade on ${ADDRESS_TO_CONTRACT[tx.toAddress]}`,
+            acquired: [],
+            disposed: [],
+            fees: [{
+              asset: 'MATIC',
+              amount: tx.maticValueFee
+            }]
+          })
+          data.trades.push(trade)
+
+          let disposedLabels = []
+          let acquiredLabels = []
+          // main tx
+          if (tx.maticValueIn !== '0') {
+            trade.acquired.push({
+              asset: 'MATIC',
+              amount: tx.maticValueIn
+            })
+            acquiredLabels.push(`${tx.maticValueIn} MATIC`)
+          }
+          if (tx.maticValueOut !== '0') {
+            trade.disposed.push({
+              asset: 'MATIC',
+              amount: tx.maticValueOut
+            })
+            disposedLabels.push(`${tx.maticValueIn} MATIC`)
+          }
+          // internal tx
+          for (const internalTx of txGroup.internal) {
+            if (internalTx.toAddress !== address) {
+              console.error(`Unexpected toAddress in trade erc20 tx`, txGroup)
+            } else if (internalTx.maticValueOut !== '0') {
+              console.error(`Unexpected maticValueOut in trade erc20 tx`, txGroup)
+            } else if (internalTx.maticValueIn !== '0') {
+              trade.acquired.push({
+                asset: 'MATIC',
+                amount: internalTx.maticValueIn
+              })
+              acquiredLabels.push(`${internalTx.maticValueIn} MATIC`)
+            }
+          }
+
+          // erc20
+          for (const erc20tx of txGroup.erc20) {
+            if (erc20tx.toAddress === address && erc20tx.fromAddress !== address) {
+              const erc20item = {
+                asset: erc20tx.token,
+                assetContractAddress: erc20tx.tokenContractAddress,
+                amount: erc20tx.tokenValue
+              }
+              trade.acquired.push(erc20item)
+              acquiredLabels.push(`${erc20item.amount} ${erc20item.asset || erc20item.assetContractAddress}`)
+            } else if (erc20tx.fromAddress === address && erc20tx.toAddress !== address) {
+              const erc20item = {
+                asset: erc20tx.token,
+                assetContractAddress: erc20tx.tokenContractAddress,
+                amount: erc20tx.tokenValue
+              }
+              trade.disposed.push(erc20item)
+              disposedLabels.push(`${erc20item.amount} ${erc20item.asset || erc20item.assetContractAddress}`)
+            } else {
+              console.error(`Unexpected erc20tx contents in trade`, txGroup)
+            }
+          }
+
+          if (!disposedLabels.length || !acquiredLabels.length) {
+            console.error(`Unexpected trade contents: should have both disposed and acquired assets`, txGroup, trade)
+          }
+          trade.label += `: ${disposedLabels.join(', ')} -> ${acquiredLabels.join(', ')}`
+          console.log(trade.label)
         }
       } else if (tx.method === 'Transfer' || tx.method === 'Safe Transfer From') {
         console.group(`Transfer from ${tx.fromAddress} to ${tx.toAddress} (tx ${tx.txId}`)
@@ -846,10 +1020,221 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
         data.unprocessed.push(txGroup)
       }
     } else {
-      // TODO handle txGroup without a main transaction
+      // Handle txGroup without a main transaction
+
       // Baazaar sales
+      if (
+        // Look for Baazaar sale pattern (ERC1155):
+        //  received GHST
+        txGroup.erc20.length === 1 &&
+        txGroup.erc20[0].toAddress === address &&
+        txGroup.erc20[0].token === 'GHST' &&
+        //  sent Aavegotchi ERC1155
+        txGroup.erc1155.length === 1 &&
+        txGroup.erc1155[0].fromAddress === address &&
+        [CONTRACT_TO_ADDRESS['Aavegotchi'], CONTRACT_TO_ADDRESS['GotchiStaking']].includes(txGroup.erc1155[0].tokenContractAddress) &&
+        //  no other transfers
+        !txGroup.internal.length &&
+        !txGroup.erc721.length
+      ) {
+        const erc20tx = txGroup.erc20[0]
+        const ghstAmount = erc20tx.tokenValue
+        const erc1155tx = txGroup.erc1155[0]
+        const assetId = erc1155tx.assetId
+        const assetLabel = erc1155tx.assetLabel
+        const amount = erc1155tx.tokenValue
+        const label = `Sell ${amount} ${assetLabel} (${assetId}) on Baazaar for ${ghstAmount} GHST`
+        const sale = {
+          txId: erc20tx.txId,
+          date: erc20tx.date,
+          acquired: [{
+            asset: 'GHST',
+            amount: ghstAmount
+          }],
+          disposed: [{
+            tokenId: erc1155tx.tokenId,
+            assetId,
+            assetLabel,
+            assetContractAddress: erc1155tx.tokenContractAddress,
+            amount
+          }],
+          fees: [],
+          label
+        }
+        data.baazaarSales.push(sale)
+        console.log(label)
+
+      } else if (
+        // Look for Baazaar sale pattern (ERC721):
+        //  received GHST
+        txGroup.erc20.length === 1 &&
+        txGroup.erc20[0].toAddress === address &&
+        txGroup.erc20[0].token === 'GHST' &&
+        //  sent Aavegotchi ERC721
+        txGroup.erc721.length === 1 &&
+        txGroup.erc721[0].fromAddress === address &&
+        [CONTRACT_TO_ADDRESS['Aavegotchi'], CONTRACT_TO_ADDRESS['GotchiRealm']].includes(txGroup.erc721[0].tokenContractAddress) &&
+        //  no other transfers
+        !txGroup.internal.length &&
+        !txGroup.erc1155.length
+      ) {
+        const erc20tx = txGroup.erc20[0]
+        const ghstAmount = erc20tx.tokenValue
+        const erc721tx = txGroup.erc721[0]
+        const assetId = erc721tx.assetId
+        const assetLabel = erc721tx.assetLabel
+        const label = `Sell ${assetLabel} (${assetId}) on Baazaar for ${ghstAmount} GHST`
+        const sale = {
+          txId: erc20tx.txId,
+          date: erc20tx.date,
+          acquired: [{
+            asset: 'GHST',
+            amount: ghstAmount
+          }],
+          disposed: [{
+            asset: assetId,
+            assetLabel,
+            assetContractAddress: erc721tx.tokenContractAddress,
+            amount: '1'
+          }],
+          fees: [],
+          label
+        }
+        data.baazaarSales.push(sale)
+        console.log(label)
+
       // GBM refunds
-      data.unprocessed.push(txGroup)
+      } else if (txGroup.erc20.length === 1 && !txGroup.erc1155.length && !txGroup.erc721.length &&
+        txGroup.erc20[0].toAddress === address &&
+        [CONTRACT_TO_ADDRESS['GotchiGBM_Land']].includes(txGroup.erc20[0].fromAddress) &&
+        txGroup.erc20[0].token === 'GHST'
+      ) {
+        const erc20tx = txGroup.erc20[0]
+        const ghstAmount = erc20tx.tokenValue
+        const label = `Receive GBM bid refund: ${ghstAmount} GHST`
+        const refund = {
+          txId: erc20tx.txId,
+          date: erc20tx.date,
+          ghstAmount,
+          bidTxId: null,
+          bidReward: null,
+          label
+        }
+        data.gbmRefunds.push(refund)
+        console.log(label)
+
+      // Scam token airdrops (ERC20)
+      } else if (
+        txGroup.erc20.length === 1 &&
+        txGroup.erc20[0].toAddress === address &&
+        txGroup.erc20[0].token.startsWith('Scam_') &&
+        !txGroup.internal.length &&
+        !txGroup.erc721.length &&
+        !txGroup.erc1155.length
+      ) {
+        const erc20tx = txGroup.erc20[0]
+        const asset = erc20tx.token
+        const amount = erc20tx.tokenValue
+        const label = `Receive scam token airdrop: ${amount} ${asset}`
+        const airdrop = {
+          txId: erc20tx.txId,
+          date: erc20tx.date,
+          acquired: [{
+            asset,
+            assetLabel: asset,
+            assetContractAddress: erc20tx.tokenContractAddress,
+            amount
+          }],
+          label
+        }
+        data.scamAirdrops.push(airdrop)
+        console.log(label)
+
+      // Scam token airdrops (ERC1155)
+      } else if (
+        txGroup.erc1155.length === 1 &&
+        txGroup.erc1155[0].toAddress === address &&
+        txGroup.erc1155[0].tokenContract.startsWith('Scam_') &&
+        !txGroup.internal.length &&
+        !txGroup.erc20.length &&
+        !txGroup.erc721.length
+      ) {
+        const erc1155tx = txGroup.erc1155[0]
+        const asset = `${erc1155tx.tokenContract}:${erc1155tx.tokenName}`
+        const amount = erc1155tx.tokenValue
+        const label = `Receive scam ERC1155 token airdrop: ${amount} ${asset}`
+        const airdrop = {
+          txId: erc1155tx.txId,
+          date: erc1155tx.date,
+          acquired: [{
+            asset,
+            assetLabel: asset,
+            assetContractAddress: erc1155tx.tokenContractAddress,
+            amount
+          }],
+          label
+        }
+        data.scamAirdrops.push(airdrop)
+        console.log(label)
+
+      // Misc ERC20 token received
+      } else if (
+        txGroup.erc20.length === 1 &&
+        txGroup.erc20[0].toAddress === address &&
+        !txGroup.internal.length &&
+        !txGroup.erc721.length &&
+        !txGroup.erc1155.length
+      ) {
+        const erc20tx = txGroup.erc20[0]
+        const asset = erc20tx.token
+        const amount = erc20tx.tokenValue
+        const label = `Receive ${amount} ${asset} from ${erc20tx.fromAddress}`
+        const deposit = {
+          txId: erc20tx.txId,
+          date: erc20tx.date,
+          fromAddress: erc20tx.fromAddress,
+          acquired: [{
+            asset,
+            assetContractAddress: erc20tx.tokenContractAddress,
+            amount
+          }],
+          label
+        }
+        data.deposits.push(deposit)
+
+        console.log(label)
+
+      // Misc ERC1155 token received
+      } else if (
+        txGroup.erc1155.length === 1 &&
+        txGroup.erc1155[0].toAddress === address &&
+        !txGroup.internal.length &&
+        !txGroup.erc721.length &&
+        !txGroup.erc20.length
+      ) {
+        const erc1155tx = txGroup.erc1155[0]
+        const asset = erc1155tx.assetId || erc1155tx.tokenContract
+        const assetLabel = erc1155tx.assetLabel || erc1155tx.tokenContract
+        const amount = erc1155tx.tokenValue
+        const label = `Receive ${amount} ${assetLabel} (${asset}) from ${erc1155tx.fromAddress}`
+        const deposit = {
+          txId: erc1155tx.txId,
+          date: erc1155tx.date,
+          fromAddress: erc1155tx.fromAddress,
+          acquired: [{
+            tokenId: erc1155tx.tokenId,
+            asset,
+            assetContractAddress: erc1155tx.tokenContractAddress,
+            amount
+          }],
+          label
+        }
+        data.deposits.push(deposit)
+
+        console.log(label)
+      } else {
+        data.unprocessed.push(txGroup)
+      }
     }
   }
 
