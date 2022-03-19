@@ -580,7 +580,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
             acquired,
             disposed: [{
               asset: 'GHST',
-              amount: totalGhst   // TODO string!
+              amount: totalGhst.toString()
             }],
             fees: [{
               asset: 'MATIC',
