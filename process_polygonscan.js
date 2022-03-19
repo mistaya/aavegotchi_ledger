@@ -3,6 +3,7 @@ const fs = require('fs')
 const fsReadFile = promisify(fs.readFile)
 const fsWriteFile = promisify(fs.writeFile)
 const { parse } = require('csv-parse/sync')
+const BigNumber = require('bignumber.js')
 
 const ADDRESS_TO_TOKEN = {
   '0x385eeac5cb85a38a9a07a70c73e0a3271cfb54a7': 'GHST',
@@ -103,9 +104,6 @@ const importWearables = async function () {
 }
 
 // TODO
-// - incoming transfers without self-initiated transaction.
-//   - donations (MATIC, ERC20, ERC721, ERC1155)
-//   - but also baazaar sales, auction outbids: these must be identified first and flagged as handled
 // - match up GBM bids with auction wins/claims. Need to fetch tx details!
 // - fetch & calculate NFT prices at relevant dates
 
@@ -165,9 +163,9 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
       fromAddress: tx.fromAddress,
       toAddress: tx.toAddress,
       contractAddress: tx.contractAddress,
-      maticValueIn: tx.maticValueIn,
-      maticValueOut: tx.maticValueOut,
-      maticValueFee: tx.maticValueFee,
+      maticValueIn: cleanExportedNumber(tx.maticValueIn),
+      maticValueOut: cleanExportedNumber(tx.maticValueOut),
+      maticValueFee: cleanExportedNumber(tx.maticValueFee),
       status: tx.status,
       errorCode: tx.errorCode,
       method: tx.method
@@ -205,8 +203,8 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
         contractAddress: tx.contractAddress,
         fromAddress: tx.fromAddress,
         toAddress: tx.toAddress,
-        maticValueIn: tx.maticValueIn,
-        maticValueOut: tx.maticValueOut,
+        maticValueIn: cleanExportedNumber(tx.maticValueIn),
+        maticValueOut: cleanExportedNumber(tx.maticValueOut),
         status: tx.status,
         errorCode: tx.errorCode,
         type: tx.type
@@ -233,7 +231,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
       date: tx.date,
       fromAddress: tx.fromAddress,
       toAddress: tx.toAddress,
-      tokenValue: tx.tokenValue,
+      tokenValue: cleanExportedNumber(tx.tokenValue),
       tokenContractAddress: tx.tokenContractAddress,
       token: ADDRESS_TO_TOKEN[tx.tokenContractAddress] || '',
       tokenSymbolFromPolygonscan: tx.tokenSymbol
@@ -266,7 +264,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
       date: tx.date,
       fromAddress: tx.fromAddress,
       toAddress: tx.toAddress,
-      tokenValue: tx.tokenValue,
+      tokenValue: cleanExportedNumber(tx.tokenValue),
       tokenContractAddress: tx.tokenContractAddress,
       tokenContract: ADDRESS_TO_CONTRACT[tx.tokenContractAddress] || '',
       tokenId: tx.tokenId,
@@ -311,7 +309,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
       tokenContractAddress: tx.tokenContractAddress,
       tokenContract,
       tokenId: tx.tokenId,
-      tokenValue: tx.tokenValue,
+      tokenValue: cleanExportedNumber(tx.tokenValue),
       assetId: tokenDetails?.asset || '',
       assetLabel: tokenDetails?.label || '',
       tokenName: tx.tokenName,
@@ -524,15 +522,14 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
         if (!hasExpectedTxs) {
           console.error(`Unexpected Baazaar sale txGroup contents`, txGroup)
         } else {
-          // TODO use bignumber
-          let totalGhst = 0
+          let totalGhst = new BigNumber(0)
           for (const erc20tx of txGroup.erc20) {
             if (erc20tx.token !== 'GHST') {
               console.error(`Unexpected ERC20 token found in Baazaar sale ${erc20tx.token}`, erc20tx)
             } else if (erc20tx.fromAddress !== address) {
               console.error(`Unexpected fromAddress found in Baazaar sale ${erc20tx.fromAddress}`, erc20tx)
             } else {
-              totalGhst += erc20tx.tokenValue - 0
+              totalGhst = totalGhst.plus(new BigNumber(erc20tx.tokenValue))
             }
           }
           let assetId = ''
@@ -743,7 +740,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
           txGroup.erc20[1].toAddress === address &&
           txGroup.erc20[0].token === 'GHST' &&
           txGroup.erc20[1].token === 'GHST' &&
-          txGroup.erc20[0].tokenValue - 0 > txGroup.erc20[1].tokenValue - 0
+          (new BigNumber(txGroup.erc20[0].tokenValue)).gt(new BigNumber(txGroup.erc20[1].tokenValue))
         ) {
           // new bid tx
           let erc20tx = txGroup.erc20[0]
@@ -1261,4 +1258,10 @@ async function readCsvFile (filename, columns) {
 
 async function writeFile (filename, data) {
   await fsWriteFile(filename, JSON.stringify(data, null, 4))
+}
+
+function cleanExportedNumber(numberString) {
+  if (!numberString) { return numberString }
+  // polygonscan exports large numbers with thousands separator ','
+  return numberString.replaceAll(',', '')
 }
