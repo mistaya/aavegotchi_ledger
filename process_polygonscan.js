@@ -1,9 +1,9 @@
-const { promisify } = require('util')
-const fs = require('fs')
-const fsReadFile = promisify(fs.readFile)
-const fsWriteFile = promisify(fs.writeFile)
-const { parse } = require('csv-parse/sync')
 const BigNumber = require('bignumber.js')
+const { readJsonFile, readCsvFile, writeJsonFile } = require('./fileUtils.js')
+const fetchTransaction = require('./fetchTransaction.js')
+const ethers = require('ethers')
+// Don't use exponential notation
+BigNumber.config({ EXPONENTIAL_AT: [-100, 100] })
 
 const ADDRESS_TO_TOKEN = {
   '0x385eeac5cb85a38a9a07a70c73e0a3271cfb54a7': 'GHST',
@@ -603,8 +603,10 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
           data.gbmClaims.push({
             txId: tx.txId,
             date: tx.date,
+            tokenId: erc721tx.tokenId,
             assetId,
             assetLabel,
+            assetContractAddress: erc721tx.tokenContractAddress,
             amount: '1',
             maticValueFee: !assignedFee ? tx.maticValueFee : '0',
             label
@@ -621,8 +623,10 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
           data.gbmClaims.push({
             txId: tx.txId,
             date: tx.date,
+            tokenId: erc1155tx.tokenId,
             assetId,
             assetLabel,
+            assetContractAddress: erc1155tx.tokenContractAddress,
             amount,
             maticValueFee: !assignedFee ? tx.maticValueFee : '0',
             label
@@ -763,8 +767,6 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
             txId: tx.txId,
             date: tx.date,
             ghstAmount: amount,
-            bidTxId: null,
-            bidReward: null,
             label
           })
           console.log(label)
@@ -1237,27 +1239,165 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
 
   console.log(`Loaded data with ${Object.keys(allTransactions).length} transactions: found for ${Object.entries(data).map(([id, list]) => id === 'address' ? list : `${list.length} ${id}`).join(', ')}`)
 
+  // Fetch additional data necessary to fully understand the transactions
+
+  // TODO what actually happens when outbidding self in terms of rewards?
+
+  console.log(`----------- Fetch additional info -----------`)
+  let gbmAbi = await readJsonFile('./gbmDiamondAbi.json')
+  let gbmIface = new ethers.utils.Interface(gbmAbi)
+
+  let i = 0;
+  for (const bid of data.gbmBids) {
+    console.group(`Fetch transaction details for bid ${bid.txId}`)
+    const txDetails = await fetchTransaction(bid.txId)
+    // console.log(txDetails)
+    let auctionId = null
+    for (const eventLog of txDetails.log_events) {
+      // console.log({ eventLog })
+      try {
+        const decoded = gbmIface.parseLog({
+          data: eventLog.raw_log_data,
+          topics: eventLog.raw_log_topics
+        })
+        // console.log(`Log decoded for ${decoded.name}`)
+        if (decoded.name === 'Auction_BidPlaced') {
+          auctionId = decoded.args._auctionID.toString()
+        }
+      } catch (e) {
+        // console.error(`Log not decoded`, e.message)
+      }
+    }
+
+    console.log(`Auction ${auctionId}`)
+    bid.auctionId = auctionId
+    console.groupEnd()
+    i++
+    // if (i > 2) {
+    //   break
+    // }
+  }
+
+  i = 0;
+  for (const bid of data.gbmRefunds) {
+    console.group(`Fetch transaction details for bid refund`)
+    const txDetails = await fetchTransaction(bid.txId)
+    //console.log(txDetails)
+    let newBidder = null
+    let incentiveAmount = null
+    let auctionId = null
+    for (const eventLog of txDetails.log_events) {
+      // console.log({ eventLog })
+      try {
+        const decoded = gbmIface.parseLog({
+          data: eventLog.raw_log_data,
+          topics: eventLog.raw_log_topics
+        })
+        // console.log(`Log decoded for ${decoded.name}`)
+        if (decoded.name === 'Auction_BidPlaced') {
+          newBidder = decoded.args._bidder.toLowerCase()
+        } else if (decoded.name === 'Auction_IncentivePaid') {
+          if (decoded.args._earner.toLowerCase() === address) {
+            incentiveAmount = ethers.utils.formatEther(decoded.args._incentiveAmount)
+            auctionId = decoded.args._auctionID.toString()
+          }
+        }
+      } catch (e) {
+        // console.error(`Log not decoded`, e.message)
+      }
+    }
+    // console.log(`New Bidder ${newBidder}`)
+    // console.log(`Received incentive ${incentiveAmount}`)
+    console.log(`Auction ${auctionId}`)
+    bid.newBidder = newBidder,
+    bid.bidReward = incentiveAmount
+    bid.auctionId = auctionId
+    if (incentiveAmount) {
+      bid.label += ` (reward: ${incentiveAmount} GHST)`
+    }
+    console.log(bid.label)
+    if (bid.newBidder === address) {
+      console.log(`Outbid self!`)
+    }
+    console.groupEnd()
+    i++
+    // if (i > 2) {
+    //   break
+    // }
+  }
+
+  // TODO group events (bids, refunds, claims) by auction ID
+  const assignedAuctions = {}
+  for (const bid of data.gbmClaims) {
+    console.group(`Fetch transaction details for auction claim ${bid.txId}`)
+    const txDetails = await fetchTransaction(bid.txId)
+    // console.log(txDetails)
+    let auctionId = null
+    for (let index = 0; index < txDetails.log_events.length; index++) {
+      const eventLog = txDetails.log_events[index]
+      // console.log({ eventLog })
+      // TODO for some reason, raw_log_data is null for the relevant 'claim' event.
+      // Instead, match it by the sender_address and pick the 2nd raw_log_topics value to get the auction ID
+      // This is awful - there must be a better way to do it!
+      if (GBM_CONTRACT_ADDRESSES.includes(eventLog.sender_address) &&
+        eventLog.raw_log_data === null &&
+        eventLog.raw_log_topics[0] === '0x36c817b01bdbc20b542bcc10ca808780e14aa4c1043a66966a7692de51df5113'
+      ) {
+        const auctionIdHex = eventLog.raw_log_topics[1]
+        const auctionIdNum = new BigNumber(auctionIdHex).toString()
+        if (assignedAuctions[auctionIdNum]) {
+          // already found claim for this auction
+          // (Need to check because batch claim can have multiple entries for same type of ERC1155)
+          continue
+        }
+        // console.log(`Found ${auctionIdHex}`)
+        // Check the next log: it should contain the transfer of the NFT
+        // If it matches, use this auction ID (it might not if this is a batch claim)
+        const nextEventLog = txDetails.log_events[index + 1]
+        if (nextEventLog) {
+          if (nextEventLog.decoded?.name === 'Transfer' &&
+            nextEventLog.sender_address === bid.assetContractAddress &&
+            nextEventLog.decoded.params.length === 3 &&
+            nextEventLog.raw_log_topics.length === 4
+          ) {
+            const tokenId = new BigNumber(nextEventLog.raw_log_topics[3]).toString()
+            // console.log(`Next event is a ERC721 transfer of token ${tokenId}`)
+            if (tokenId === bid.tokenId) {
+              // console.log(`Found matching entry`)
+              auctionId = new BigNumber(auctionIdHex).toString()
+              break
+            }
+          } else if (nextEventLog.decoded?.name === 'TransferSingle' &&
+            nextEventLog.sender_address === bid.assetContractAddress &&
+            nextEventLog.decoded.params.length === 5
+          ) {
+            const tokenId = nextEventLog.decoded.params.find(({ name }) => name === '_id').value
+            // console.log(`Next event is a ERC1155 transfer of token ${tokenId}`)
+            if (tokenId === bid.tokenId) {
+              // console.log(`Found matching entry`)
+              auctionId = new BigNumber(auctionIdHex).toString()
+              break
+            }
+          }
+        }
+      }
+    }
+
+    console.log(`Auction ${auctionId}`)
+    bid.auctionId = auctionId
+    if (auctionId) {
+      assignedAuctions[auctionId] = true
+    }
+    console.groupEnd()
+    i++
+    // if (i > 15) {
+    //   break
+    // }
+  }
+
   // Finished, export result
-  await writeFile(filenameOut, { data, allTransactions })
+  await writeJsonFile(filenameOut, { data, allTransactions })
   console.log(`Written ${filenameOut}`)
-}
-
-async function readJsonFile (filename) {
-  const content = await fsReadFile(filename, 'utf8')
-  return JSON.parse(content)
-}
-
-async function readCsvFile (filename, columns) {
-  const content = await fsReadFile(filename, 'utf8')
-  return parse(content, {
-    from_line: 2,
-    columns,
-    relax_column_count_more: true // exports have an extra empty string at the end of each row
-  })
-}
-
-async function writeFile (filename, data) {
-  await fsWriteFile(filename, JSON.stringify(data, null, 4))
 }
 
 function cleanExportedNumber(numberString) {

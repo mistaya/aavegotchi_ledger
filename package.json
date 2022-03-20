@@ -1,6 +1,8 @@
 {
   "dependencies": {
+    "axios": "^0.26.1",
     "bignumber.js": "^9.0.2",
-    "csv": "^6.0.5"
+    "csv": "^6.0.5",
+    "ethers": "^5.6.1"
   }
 }
