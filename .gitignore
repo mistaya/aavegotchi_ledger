@@ -3,3 +3,4 @@
 process_polygonscan_*.sh
 node_modules/
 cache/
+*.log

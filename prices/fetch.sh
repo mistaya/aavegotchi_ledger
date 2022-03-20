@@ -1,0 +1,1 @@
+node fetchBaazaarSales.js

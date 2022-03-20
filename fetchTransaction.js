@@ -9,6 +9,9 @@ const API_KEY = 'ckey_37f8f3ef86fb4d97a9a5b8f382f'
 const chainId = 137
 const chainAsset = 'MATIC'
 
+// If this fails (empty transaction), a manual workaround is to fetch the data from
+// https://docs.alchemy.com/alchemy/apis/polygon-api/eth_gettransactionreceipt
+// store it as a file in the cache, and manually modify it to match the format
 module.exports = function (transactionId) {
   return new Promise(async (resolve, reject) => {
     const cacheFilePath = `./cache/tx_${transactionId}.json`

@@ -5,6 +5,8 @@ const ethers = require('ethers')
 // Don't use exponential notation
 BigNumber.config({ EXPONENTIAL_AT: [-100, 100] })
 
+const ERC1155_PRICES_FILENAME = './prices/erc1155Prices.json'
+
 const ADDRESS_TO_TOKEN = {
   '0x385eeac5cb85a38a9a07a70c73e0a3271cfb54a7': 'GHST',
   '0xc2132d05d31c914a87c6611c10748aeb04b58e8f': 'USDT',
@@ -119,6 +121,17 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
   address = address.toLowerCase()
 
   await importWearables()
+
+  const erc1155Prices = await readJsonFile(ERC1155_PRICES_FILENAME)
+  const findErc1155Price = function(tokenAddress, tokenId, txDate) {
+    const date = txDate.substring(0, txDate.indexOf(' ')) // just want the 'YYYY-MM-DD', assume UTC
+    // console.log(`Look up ERC1155 price for ${tokenAddress} ${tokenId} at ${date}`)
+    const price = erc1155Prices[tokenAddress]?.[tokenId]?.[date] || null
+    if (!price) {
+      console.warn(`Couldn't find ERC1155 price for ${tokenAddress} ${tokenId} at ${date}`)
+    }
+    return price
+  }
 
   const allTransactions = {}
   const initTransaction = function (txId) {
@@ -335,6 +348,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
     gbmBids: [],
     gbmRefunds: [],
     gbmClaims: [],
+    gbmAuctions: {},
     gotchiAirdrops: [],
     raffleTicketClaims: [],
     raffleSubmissions: [],
@@ -422,6 +436,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
               const assetLabel = erc1155tx.assetLabel
               const amount = erc1155tx.tokenValue
               const label = `Claim ${amount} ${assetLabel} (${asset})`
+              const ghstPrice = findErc1155Price(erc1155tx.tokenContractAddress, erc1155tx.tokenId, erc1155tx.date)
               const claim = {
                 txId: tx.txId,
                 date: tx.date,
@@ -430,6 +445,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
                 assetContractAddress: erc1155tx.tokenContractAddress,
                 assetLabel,
                 amount,
+                ghstPrice,
                 maticValueFee: !assignedFee ? tx.maticValueFee : '0',
                 label
               }
@@ -650,12 +666,14 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
             const assetLabel = erc1155tx.assetLabel
             const amount = erc1155tx.tokenValue
             const label = `Claim Aavegotchi-related airdrop: ${amount} ${assetLabel} (${assetId})`
+            const ghstPrice = findErc1155Price(erc1155tx.tokenContractAddress, erc1155tx.tokenId, erc1155tx.date)
             data.gotchiAirdrops.push({
               txId: tx.txId,
               date: tx.date,
               assetId,
               assetLabel,
               amount,
+              ghstPrice,
               maticValueFee: !assignedFee ? tx.maticValueFee : '0',
               label
             })
@@ -690,12 +708,14 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
             const assetLabel = erc1155tx.assetLabel
             const amount = erc1155tx.tokenValue
             const label = `Claim Aavegotchi raffle winnings: ${amount} ${assetLabel} (${assetId})`
+            const ghstPrice = findErc1155Price(erc1155tx.tokenContractAddress, erc1155tx.tokenId, erc1155tx.date)
             data.raffleWins.push({
               txId: tx.txId,
               date: tx.date,
               assetId,
               assetLabel,
               amount,
+              ghstPrice,
               maticValueFee: !assignedFee ? tx.maticValueFee : '0',
               label
             })
@@ -719,6 +739,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
             const assetLabel = erc1155tx.assetLabel
             const amount = erc1155tx.tokenValue
             const label = `Submit Aavegotchi raffle tickets: ${amount} ${assetLabel} (${assetId})`
+            const ghstPrice = findErc1155Price(erc1155tx.tokenContractAddress, erc1155tx.tokenId, erc1155tx.date)
             data.raffleSubmissions.push({
               txId: tx.txId,
               date: tx.date,
@@ -727,6 +748,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
               assetLabel,
               assetContractAddress: erc1155tx.tokenContractAddress,
               amount,
+              ghstPrice,
               maticValueFee: !assignedFee ? tx.maticValueFee : '0',
               label
             })
@@ -989,12 +1011,14 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
             let acquiredLabels = []
             for (const erc1155tx of txGroup.erc1155) {
               if (erc1155tx.tokenValue !== '0') {
+                const ghstPrice = findErc1155Price(erc1155tx.tokenContractAddress, erc1155tx.tokenId, erc1155tx.date)
                 if (address === erc1155tx.fromAddress) {
                   transfer.disposed.push({
                     asset: erc1155tx.assetId,
                     assetContractAddress: erc1155tx.tokenContractAddress,
                     assetTokenId: erc1155tx.tokenId,
-                    amount: erc1155tx.tokenValue
+                    amount: erc1155tx.tokenValue,
+                    ghstPrice
                   })
                   disposedLabels.push(erc1155tx.tokenValue + ' ' + (erc1155tx.assetLabel || `Unknown NFT #${erc1155tx.tokenId}`))
                 }
@@ -1003,7 +1027,8 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
                     asset: erc1155tx.assetId,
                     assetContractAddress: erc1155tx.tokenContractAddress,
                     assetTokenId: erc1155tx.tokenId,
-                    amount: erc1155tx.tokenValue
+                    amount: erc1155tx.tokenValue,
+                    ghstPrice
                   })
                   acquiredLabels.push(erc1155tx.tokenValue + ' ' + (erc1155tx.assetLabel || `Unknown NFT #${erc1155tx.tokenId}`))
                 }
@@ -1115,8 +1140,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
           txId: erc20tx.txId,
           date: erc20tx.date,
           ghstAmount,
-          bidTxId: null,
-          bidReward: null,
+          ghstRewardAmount: null,
           label
         }
         data.gbmRefunds.push(refund)
@@ -1216,6 +1240,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
         const assetLabel = erc1155tx.assetLabel || erc1155tx.tokenContract
         const amount = erc1155tx.tokenValue
         const label = `Receive ${amount} ${assetLabel} (${asset}) from ${erc1155tx.fromAddress}`
+        const ghstPrice = findErc1155Price(erc1155tx.tokenContractAddress, erc1155tx.tokenId, erc1155tx.date)
         const deposit = {
           txId: erc1155tx.txId,
           date: erc1155tx.date,
@@ -1224,7 +1249,8 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
             tokenId: erc1155tx.tokenId,
             asset,
             assetContractAddress: erc1155tx.tokenContractAddress,
-            amount
+            amount,
+            ghstPrice
           }],
           label
         }
@@ -1241,15 +1267,23 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
 
   // Fetch additional data necessary to fully understand the transactions
 
-  // TODO what actually happens when outbidding self in terms of rewards?
-
   console.log(`----------- Fetch additional info -----------`)
   let gbmAbi = await readJsonFile('./gbmDiamondAbi.json')
   let gbmIface = new ethers.utils.Interface(gbmAbi)
 
+  const initGbmAuction = function(auctionId) {
+    if (!data.gbmAuctions[auctionId]) {
+      data.gbmAuctions[auctionId] = {
+        bids: [],
+        refunds: [],
+        claim: null,
+      }
+    }
+  }
+
   let i = 0;
   for (const bid of data.gbmBids) {
-    console.group(`Fetch transaction details for bid ${bid.txId}`)
+    console.group(`Fetch transaction details for GBM bid ${bid.txId}`)
     const txDetails = await fetchTransaction(bid.txId)
     // console.log(txDetails)
     let auctionId = null
@@ -1269,8 +1303,15 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
       }
     }
 
-    console.log(`Auction ${auctionId}`)
-    bid.auctionId = auctionId
+    if (auctionId) {
+      console.log(`Auction ${auctionId}`)
+      bid.auctionId = auctionId
+      initGbmAuction(auctionId)
+      data.gbmAuctions[auctionId].bids.push(bid)
+    } else {
+      console.error(`Didn't find auctionId for GBM bid ${bid.txId}`)
+    }
+
     console.groupEnd()
     i++
     // if (i > 2) {
@@ -1279,9 +1320,9 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
   }
 
   i = 0;
-  for (const bid of data.gbmRefunds) {
-    console.group(`Fetch transaction details for bid refund`)
-    const txDetails = await fetchTransaction(bid.txId)
+  for (const refund of data.gbmRefunds) {
+    console.group(`Fetch transaction details for GBM refund`)
+    const txDetails = await fetchTransaction(refund.txId)
     //console.log(txDetails)
     let newBidder = null
     let incentiveAmount = null
@@ -1308,16 +1349,25 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
     }
     // console.log(`New Bidder ${newBidder}`)
     // console.log(`Received incentive ${incentiveAmount}`)
-    console.log(`Auction ${auctionId}`)
-    bid.newBidder = newBidder,
-    bid.bidReward = incentiveAmount
-    bid.auctionId = auctionId
-    if (incentiveAmount) {
-      bid.label += ` (reward: ${incentiveAmount} GHST)`
-    }
-    console.log(bid.label)
-    if (bid.newBidder === address) {
-      console.log(`Outbid self!`)
+    if (auctionId) {
+      console.log(`Auction ${auctionId}`)
+      refund.newBidder = newBidder,
+      refund.ghstRewardAmount = incentiveAmount
+      refund.auctionId = auctionId
+      if (incentiveAmount) {
+        refund.label += ` (reward: ${incentiveAmount} GHST)`
+      } else {
+        console.error(`Didn't find reward amound for GBM refund ${refund.txId}`)
+      }
+      console.log(refund.label)
+      if (refund.newBidder === address) {
+        console.log(`Outbid self!`)
+      }
+
+      initGbmAuction(auctionId)
+      data.gbmAuctions[auctionId].refunds.push(refund)
+    } else {
+      console.error(`Didn't find auctionId for GBM refund ${refund.txId}`)
     }
     console.groupEnd()
     i++
@@ -1326,11 +1376,11 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
     // }
   }
 
-  // TODO group events (bids, refunds, claims) by auction ID
+  // Group events (bids, refunds, claims) by auction ID
   const assignedAuctions = {}
-  for (const bid of data.gbmClaims) {
-    console.group(`Fetch transaction details for auction claim ${bid.txId}`)
-    const txDetails = await fetchTransaction(bid.txId)
+  for (const claim of data.gbmClaims) {
+    console.group(`Fetch transaction details for GBM claim ${claim.txId}`)
+    const txDetails = await fetchTransaction(claim.txId)
     // console.log(txDetails)
     let auctionId = null
     for (let index = 0; index < txDetails.log_events.length; index++) {
@@ -1356,24 +1406,24 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
         const nextEventLog = txDetails.log_events[index + 1]
         if (nextEventLog) {
           if (nextEventLog.decoded?.name === 'Transfer' &&
-            nextEventLog.sender_address === bid.assetContractAddress &&
+            nextEventLog.sender_address === claim.assetContractAddress &&
             nextEventLog.decoded.params.length === 3 &&
             nextEventLog.raw_log_topics.length === 4
           ) {
             const tokenId = new BigNumber(nextEventLog.raw_log_topics[3]).toString()
             // console.log(`Next event is a ERC721 transfer of token ${tokenId}`)
-            if (tokenId === bid.tokenId) {
+            if (tokenId === claim.tokenId) {
               // console.log(`Found matching entry`)
               auctionId = new BigNumber(auctionIdHex).toString()
               break
             }
           } else if (nextEventLog.decoded?.name === 'TransferSingle' &&
-            nextEventLog.sender_address === bid.assetContractAddress &&
+            nextEventLog.sender_address === claim.assetContractAddress &&
             nextEventLog.decoded.params.length === 5
           ) {
             const tokenId = nextEventLog.decoded.params.find(({ name }) => name === '_id').value
             // console.log(`Next event is a ERC1155 transfer of token ${tokenId}`)
-            if (tokenId === bid.tokenId) {
+            if (tokenId === claim.tokenId) {
               // console.log(`Found matching entry`)
               auctionId = new BigNumber(auctionIdHex).toString()
               break
@@ -1383,16 +1433,32 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
       }
     }
 
-    console.log(`Auction ${auctionId}`)
-    bid.auctionId = auctionId
     if (auctionId) {
+      console.log(`Auction ${auctionId}`)
+      claim.auctionId = auctionId
+
       assignedAuctions[auctionId] = true
+
+      initGbmAuction(auctionId)
+      data.gbmAuctions[auctionId].claim = claim
+    } else {
+      console.error(`Didn't find auctionId for GBM claim ${claim.txId}`)
     }
     console.groupEnd()
     i++
     // if (i > 15) {
     //   break
     // }
+  }
+
+  // Now that the GBM events are grouped by auctionId, annotate them where possible
+  for (const auctionId in data.gbmAuctions) {
+    const auction = data.gbmAuctions[auctionId]
+    if (auction.claim) {
+      for (const item of [...auction.bids, ...auction.refunds]) {
+        item.label += ` (${auction.claim.assetLabel} ${auction.claim.assetId})`
+      }
+    }
   }
 
   // Finished, export result
