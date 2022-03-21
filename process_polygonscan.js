@@ -57,6 +57,11 @@ const GBM_CONTRACT_ADDRESSES = [
   CONTRACT_TO_ADDRESS['GotchiGBM_2021-07']
 ]
 
+const CONTRACT_ERC721 = {
+  '0x86935f11c86623dec8a25696e1c19a8659cbf95d': 'AG-GOTCHI',
+  '0x1d0360bac7299c86ec8e99d0c1c9a95fefaf2a11': 'AG-REALM'
+}
+
 const CONTRACT_ERC1155 = {
   '0x86935f11c86623dec8a25696e1c19a8659cbf95d': {
     // wearables will be populated later
@@ -98,7 +103,7 @@ const importWearables = async function () {
   console.log(`Found ${wearables.length} wearables`)
   for (const wearable of wearables) {
     CONTRACT_ERC1155['0x86935f11c86623dec8a25696e1c19a8659cbf95d'][`${wearable.id}`] = {
-      asset: `AG-STK-${wearable.id}`,
+      asset: `AG-WEAR-${wearable.id}`,
       label: wearable.name
     }
   }
@@ -271,6 +276,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
     if (!tokenContract) {
       console.log(`Unknown ERC721 contract: ${tx.tokenContractAddress}`)
     }
+    const assetIdPrefix = CONTRACT_ERC721[tx.tokenContractAddress] || tokenContract
     allTransactions[tx.txId].erc721.push({
       txId: tx.txId,
       date: tx.date,
@@ -280,8 +286,8 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
       tokenContractAddress: tx.tokenContractAddress,
       tokenContract: ADDRESS_TO_CONTRACT[tx.tokenContractAddress] || '',
       tokenId: tx.tokenId,
-      assetId: `${tokenContract || 'UNKNOWN'}-${tx.tokenId}`,
-      assetLabel: `${tokenContract || 'UNKNOWN'} #${tx.tokenId}`,
+      assetId: `${assetIdPrefix || 'UNKNOWN'}-${tx.tokenId}`,
+      assetLabel: `${assetIdPrefix || 'UNKNOWN'} #${tx.tokenId}`,
       tokenName: tx.tokenName,
       tokenSymbol: tx.tokenSymbol
     })
@@ -472,9 +478,9 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
           date: tx.date,
           fromAddress: tx.fromAddress,
           tokenAddress: tx.toAddress,
-          token: 'GotchiRealm',
+          token: 'AG-REALM',
           maticValueFee: tx.maticValueFee,
-          label: 'Approve transfer of GotchiRealm'
+          label: 'Approve transfer of AG-REALM'
         })
       } else if (isCallingAavegotchi && ['Open Portals', 'Claim Aavegotchi', 'Interact', 'Set Aavegotchi Name', 'Equip Wearables',
           'Spend Skill Points', 'Set Pet Operator For All', 'Cancel ERC721Listing', 'Cancel ERC1155Listing'].includes(tx.method)) {
