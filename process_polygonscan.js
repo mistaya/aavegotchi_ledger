@@ -38,7 +38,6 @@ const ADDRESS_TO_TOKEN = {
 const ADDRESS_TO_CONTRACT = {
   '0x86935f11c86623dec8a25696e1c19a8659cbf95d': 'Aavegotchi', // Portals, Gotchi, Wearables
   '0xa02d547512bb90002807499f05495fe9c4c3943f': 'GotchiStaking', // Staking, Raffle tickets
-  '0x8c41492cd9f15d0ca22003aecb4b00d02e4ce8e6': 'GotchiStaking2', // Staking (Sep 2021)
   '0x1d0360bac7299c86ec8e99d0c1c9a95fefaf2a11': 'GotchiRealm', // Parcels
   '0x75c8866f47293636f1c32ecbcd9168857dbefc56': 'GotchiAirdrops', // Claimable airdrops: H1 bg, Drop tickets
   '0x6c723cac1e35fe29a175b287ae242d424c52c1ce': 'GotchiRaffles', // Raffle submission/claiming
@@ -342,7 +341,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
     ghstStaking: [],
     gameActions: [],
     pocketTransfers: [],
-    bazaarListings: [],
+    baazaarListings: [],
     baazaarSales: [],
     baazaarPurchases: [],
     gbmBids: [],
@@ -389,7 +388,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
           console.log(`Approval for unknown token: ${tx.toAddress}`)
         }
         // console.log(`Approve ${token}`)
-      } else if (tx.fromAddress === address && [CONTRACT_TO_ADDRESS['GotchiStaking'], CONTRACT_TO_ADDRESS['GotchiStaking2']].includes(tx.toAddress) && ['Stake Into Pool', 'Stake Ghst'].includes(tx.method)) {
+      } else if (tx.fromAddress === address && [CONTRACT_TO_ADDRESS['GotchiStaking']].includes(tx.toAddress) && ['Stake Into Pool', 'Stake Ghst'].includes(tx.method)) {
         if (txGroup.erc20.length !== 1 || txGroup.erc20[0].token !== 'GHST' || txGroup.erc721.length || txGroup.erc1155.length || txGroup.internal.length) {
           console.error(`Unexpected GHST staking txGroup contents`, txGroup)
         } else {
@@ -516,7 +515,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
         } else {
           const erc20tx = txGroup.erc20[0]
           const label = `Add Baazaar listing`
-          data.bazaarListings.push({
+          data.baazaarListings.push({
             txId: tx.txId,
             date: tx.date,
             ghstAmount: erc20tx.tokenValue,
@@ -561,7 +560,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
               assetLabel = erc721tx.assetLabel
               amount = '1'
               acquired.push({
-                assetId,
+                asset: assetId,
                 assetLabel,
                 assetContractAddress: erc721tx.tokenContractAddress,
                 amount
@@ -582,7 +581,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
               amount = erc1155tx.tokenValue
               acquired.push({
                 tokenId: erc1155tx.tokenId,
-                assetId,
+                asset: assetId,
                 assetLabel,
                 assetContractAddress: erc1155tx.tokenContractAddress,
                 amount
@@ -620,7 +619,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
             txId: tx.txId,
             date: tx.date,
             tokenId: erc721tx.tokenId,
-            assetId,
+            asset: assetId,
             assetLabel,
             assetContractAddress: erc721tx.tokenContractAddress,
             amount: '1',
@@ -640,7 +639,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
             txId: tx.txId,
             date: tx.date,
             tokenId: erc1155tx.tokenId,
-            assetId,
+            asset: assetId,
             assetLabel,
             assetContractAddress: erc1155tx.tokenContractAddress,
             amount,
@@ -670,7 +669,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
             data.gotchiAirdrops.push({
               txId: tx.txId,
               date: tx.date,
-              assetId,
+              asset: assetId,
               assetLabel,
               amount,
               ghstPrice,
@@ -712,7 +711,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
             data.raffleWins.push({
               txId: tx.txId,
               date: tx.date,
-              assetId,
+              asset: assetId,
               assetLabel,
               amount,
               ghstPrice,
@@ -744,7 +743,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
               txId: tx.txId,
               date: tx.date,
               tokenId: erc1155tx.tokenId,
-              assetId,
+              asset: assetId,
               assetLabel,
               assetContractAddress: erc1155tx.tokenContractAddress,
               amount,
@@ -1077,7 +1076,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
           }],
           disposed: [{
             tokenId: erc1155tx.tokenId,
-            assetId,
+            asset: assetId,
             assetLabel,
             assetContractAddress: erc1155tx.tokenContractAddress,
             amount
@@ -1456,7 +1455,23 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
     const auction = data.gbmAuctions[auctionId]
     if (auction.claim) {
       for (const item of [...auction.bids, ...auction.refunds]) {
-        item.label += ` (${auction.claim.assetLabel} ${auction.claim.assetId})`
+        item.label += ` (${auction.claim.assetLabel} ${auction.claim.asset})`
+      }
+      if (auction.bids.length) {
+        // find the highest bid
+        const sortedBids = [...auction.bids]
+        sortedBids.sort((a, b) => {
+          const aAmount = a.ghstAmount - 0
+          const bAmount = b.ghstAmount - 0
+          if (aAmount === bAmount) {
+            return 0
+          }
+          return aAmount > bAmount ? -1 : 1
+        })
+        auction.claim.ghstAmount = sortedBids[0].ghstAmount
+      } else {
+        auction.claim.ghstAmount = null
+        console.error(`Couldn't find auction claim's corresponding bid price - please ensure all GBM transactions are provided in the polygonscan export`, auction.claim)
       }
     }
   }
