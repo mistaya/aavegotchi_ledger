@@ -176,9 +176,11 @@ const calculateErc1155Prices = async function () {
   // sales are sorted by date
   const START_DATE = DateTime.fromISO(sales[0].dateLastPurchased).toUTC().startOf('day')
   const END_DATE = DateTime.now().toUTC().startOf('day')
+  const PRICE_RANGE_DAYS = 7
+  const PROVISIONAL_DATE = END_DATE.minus({ days: PRICE_RANGE_DAYS })
   const dates = []
   let targetDate = START_DATE
-  while (targetDate < END_DATE) {
+  while (targetDate <= END_DATE) {
     dates.push(targetDate);
     targetDate = targetDate.plus({ days: 1 })
   }
@@ -214,8 +216,8 @@ const calculateErc1155Prices = async function () {
       let firstPrice = null
       let previousPrice = null
       for (const date of dates) {
-        const dateRangeStart = date.minus({ days: 7 })
-        const dateRangeEnd = date.plus({ days: 7 })
+        const dateRangeStart = date.minus({ days: PRICE_RANGE_DAYS })
+        const dateRangeEnd = date.plus({ days: PRICE_RANGE_DAYS })
         // console.log(`Calculate price for ${tokenAddress}:${tokenId} on ${date.toISODate()} (${tokenSales.length} total sales)`)
         const salesInRange = tokenSales.filter(({ dateLastPurchased }) => dateLastPurchased >= dateRangeStart && dateLastPurchased <= dateRangeEnd)
         let total = new BigNumber(0)
@@ -224,17 +226,18 @@ const calculateErc1155Prices = async function () {
         }
         const hasSales = salesInRange.length > 0
         const averagePrice = hasSales ? total.div(salesInRange.length) : null
+        const dateInProvisionalRange = date >= PROVISIONAL_DATE
         // console.log(` - found average price ${averagePrice} GHST, from ${salesInRange.length} sales in range ${dateRangeStart.toISODate()} - ${dateRangeEnd.toISODate()}`)
         pricesByDate[date.toISODate()] = hasSales ?
           {
             price: averagePrice,
             numSales: salesInRange.length,
-            type: 'mean'
+            type: dateInProvisionalRange ? 'provisional_mean' : 'mean'
           } :
           {
             price: previousPrice,
             numSales: 0,
-            type: 'previous'
+            type: dateInProvisionalRange ? 'provisional_previous' : 'previous'
           }
         if (hasSales) {
           if (firstPrice === null) {
@@ -263,21 +266,23 @@ const calculateErc1155Prices = async function () {
     }
   }
   await writeJsonFile(ERC1155_PRICES_FILENAME, prices)
+  console.log(`Calculated prices between ${START_DATE.toISODate()} - ${END_DATE.toISODate()}`)
   console.log(`Written ${ERC1155_PRICES_FILENAME}`)
-  console.log('WARNING: average prices calculated for the last 7 days are subject to change!')
+  console.log(`WARNING: average prices calculated for the last ${PRICE_RANGE_DAYS} days (${PROVISIONAL_DATE.toISODate()} onwards, assuming the sales data was fetched today) are subject to change! These have been marked as 'provisional'.`)
 }
 
 const fetchAll = function () {
-  fetchErc721Sales().then(annotateErc721Sales)
-  fetchErc1155Sales().then(annotateErc1155Sales)
+  const fetching721 = fetchErc721Sales().then(annotateErc721Sales)
+  const fetching1155 = fetchErc1155Sales().then(annotateErc1155Sales)
+  Promise.all([fetching721, fetching1155]).then(calculateErc1155Prices)
 }
 
 //----------------------------------------------
 // Uncomment the function to call
 
-// fetchAll()
+fetchAll()
 // fetchErc721Sales()
 // fetchErc1155Sales()
 // annotateErc721Sales()
 // annotateErc1155Sales()
-calculateErc1155Prices()
+// calculateErc1155Prices()
