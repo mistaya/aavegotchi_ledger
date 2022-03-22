@@ -109,10 +109,6 @@ const importWearables = async function () {
   }
 }
 
-// TODO
-// - match up GBM bids with auction wins/claims. Need to fetch tx details!
-// - fetch & calculate NFT prices at relevant dates
-
 module.exports.processExports = async (address, fileExport, fileExportInternal, fileExportERC20, fileExportERC721, fileExportERC1155, filenameOut) => {
   if (!address || !fileExport || !fileExportInternal || !fileExportERC20 || !fileExportERC721 || !fileExportERC1155 || !filenameOut) {
     console.error('Please provide all parameters')
@@ -344,6 +340,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
     deposits: [],
     transfers: [],
     trades: [],
+    gotchiSummons: [],
     ghstStaking: [],
     gameActions: [],
     pocketTransfers: [],
@@ -482,7 +479,27 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
           maticValueFee: tx.maticValueFee,
           label: 'Approve transfer of AG-REALM'
         })
-      } else if (isCallingAavegotchi && ['Open Portals', 'Claim Aavegotchi', 'Interact', 'Set Aavegotchi Name', 'Equip Wearables',
+      } else if (isCallingAavegotchi && ['Claim Aavegotchi'].includes(tx.method)) {
+        if (txGroup.erc20.length !== 1 || txGroup.erc721.length || txGroup.erc1155.length || txGroup.internal.length) {
+          console.error(`Unexpected 'Claim Aavegotchi from Portal' txGroup contents`, txGroup)
+        } else {
+          const erc20tx = txGroup.erc20[0]
+          const pocketAddress = erc20tx.toAddress
+          const label = `Summon Aavegotchi from portal, depositing ${erc20tx.tokenValue} ${erc20tx.token || 'Unknown Token'} into Gotchi Pocket`
+          const event = {
+            txId: tx.txId,
+            date: tx.date,
+            pocketAddress,
+            asset: erc20tx.token,
+            assetContractAddress: erc20tx.tokenContractAddress,
+            amount: erc20tx.tokenValue,
+            maticValueFee: tx.maticValueFee,
+            label
+          }
+          data.gotchiSummons.push(event)
+          console.log(label)
+        }
+      } else if (isCallingAavegotchi && ['Open Portals', 'Interact', 'Set Aavegotchi Name', 'Equip Wearables',
           'Spend Skill Points', 'Set Pet Operator For All', 'Cancel ERC721Listing', 'Cancel ERC1155Listing'].includes(tx.method)) {
         const label = tx.method
         const action = {
@@ -499,10 +516,13 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
         } else {
           const erc20tx = txGroup.erc20[0]
           const outOfPocket = erc20tx.toAddress === address
+          const pocketAddress = outOfPocket ? erc20tx.fromAddress : erc20tx.toAddress
           const label = `Transfer ${erc20tx.tokenValue} ${erc20tx.token || 'Unknown Token'} ${outOfPocket ? 'out of' : 'into'} Gotchi Pocket`
           const transfer = {
             txId: tx.txId,
             date: tx.date,
+            outOfPocket,
+            pocketAddress,
             asset: erc20tx.token,
             assetContractAddress: erc20tx.tokenContractAddress,
             amount: erc20tx.tokenValue,
@@ -852,7 +872,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
               asset: 'MATIC',
               amount: tx.maticValueOut
             })
-            disposedLabels.push(`${tx.maticValueIn} MATIC`)
+            disposedLabels.push(`${tx.maticValueOut} MATIC`)
           }
           // internal tx
           for (const internalTx of txGroup.internal) {
