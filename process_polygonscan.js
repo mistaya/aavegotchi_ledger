@@ -1,6 +1,7 @@
 const BigNumber = require('bignumber.js')
 const { readJsonFile, readCsvFile, writeJsonFile } = require('./fileUtils.js')
 const fetchTransaction = require('./fetchTransaction.js')
+const fetchTransactionEthers = require('./fetchTransactionEthers.js')
 const ethers = require('ethers')
 // Don't use exponential notation
 BigNumber.config({ EXPONENTIAL_AT: [-100, 100] })
@@ -9,9 +10,14 @@ const ERC1155_PRICES_FILENAME = './prices/erc1155Prices.json'
 
 const ADDRESS_TO_TOKEN = {
   '0x385eeac5cb85a38a9a07a70c73e0a3271cfb54a7': 'GHST',
+  '0x403e967b044d4be25170310157cb1a4bf10bdd0f': 'FUD',
+  '0x44a6e0be76e1d9620a7f76588e4509fe4fa8e8c8': 'FOMO',
+  '0x6a3e7c3c6ef65ee26975b12293ca1aad7e1daed2': 'ALPHA',
+  '0x42e5e06ef5b90fe15f853f59299fc96259209c5c': 'KEK',
   '0xc2132d05d31c914a87c6611c10748aeb04b58e8f': 'USDT',
   '0x2791bca1f2de4661ed88a30c99a7a9449aa84174': 'USDC',
   '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063': 'DAI',
+  '0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270': 'WMATIC',
   '0x1a13f4ca1d028320a707d99520abfefca3998b7f': 'amUSDC',
   '0x1d2a0e5ec8e5bbdca5cb219e649b565d8e5c3360': 'amAAVE',
   '0x8df3aad3a84da6b69a4da8aec3ea40d9091b2ac4': 'amWMATIC',
@@ -32,17 +38,24 @@ const ADDRESS_TO_TOKEN = {
   '0xa85f8a198d59f0fda82333be9aeeb50f24dd59ff': 'Scam_Token_FlowDAO',
   '0xd7f1d4f5a1b44d827a7c3cc5dd46a80fade55558': 'Scam_Token_Zers',
   '0x22e51bae3f545255e115090202a23c7ede0b00b9': 'Scam_Token_LELX',
-  '0x14f2c84a58e065c846c5fdddade0d3548f97a517': 'Scam_Token_MATICSWAP'
+  '0x14f2c84a58e065c846c5fdddade0d3548f97a517': 'Scam_Token_MATICSWAP',
+  '0xf31cdb090d1d4b86a7af42b62dc5144be8e42906': 'Scam_Token_0Bets'
 }
+const TOKEN_TO_ADDRESS = Object.fromEntries(Object.entries(ADDRESS_TO_TOKEN).map(([id, value]) => [value, id]))
 
 const ADDRESS_TO_CONTRACT = {
   '0x86935f11c86623dec8a25696e1c19a8659cbf95d': 'Aavegotchi', // Portals, Gotchi, Wearables
   '0xa02d547512bb90002807499f05495fe9c4c3943f': 'GotchiStaking', // Staking, Raffle tickets
   '0x1d0360bac7299c86ec8e99d0c1c9a95fefaf2a11': 'GotchiRealm', // Parcels
+  '0x19f870bd94a34b3adaa9caa439d333da18d6812a': 'GotchiInstallations',
+  '0x9216c31d8146bcb3ea5a9162dc1702e8aedca355': 'GotchiTiles',
   '0x75c8866f47293636f1c32ecbcd9168857dbefc56': 'GotchiAirdrops', // Claimable airdrops: H1 bg, Drop tickets
   '0x6c723cac1e35fe29a175b287ae242d424c52c1ce': 'GotchiRaffles', // Raffle submission/claiming
   '0xa44c8e0ecaefe668947154ee2b803bd4e6310efe': 'GotchiGBM_Land', // Land Auction 1 (2021-10) and 2 (2021-12)
   '0x1d86852b823775267ee60d98cbcda9e8d5c2faa7': 'GotchiGBM_2021-07', // Wearables GBM 1
+  '0x2c1a288353e136b9e4b467aadb307133fffeab25': 'VersePayout', // Alchemica payouts from Gotchiverse Apr 2022
+  '0xa0f32863ac0e82d36df959a95fedb661c1d32a6f': 'VersePayout2', // Alchemica payouts from Gotchiverse Apr 2022
+  '0xc57feb6d8d5edfcce4027c243dceb2b51b0e318b': 'VersePayout3', // Alchemica payouts from Gotchiverse Apr 2022
   '0x11111112542d85b3ef69ae05771c2dccff4faa26': '1inch',
   '0x1111111254fb6c44bac0bed2854e76f90643097d': '1inch2',
   '0x8dfdea6a4818d2aa7463edb9a8841cb0c04255af': 'Zapper',
@@ -94,6 +107,22 @@ const CONTRACT_ERC1155 = {
     '6': {
       asset: 'AG-STK-6',
       label: 'Drop Ticket'
+    }
+  },
+  '0x19f870bd94a34b3adaa9caa439d333da18d6812a': {
+    '1': {
+      asset: 'GV-LGA',
+      label: 'LE Golden Aaltaar'
+    }
+  },
+  '0x9216c31d8146bcb3ea5a9162dc1702e8aedca355': {
+    '1': {
+      asset: 'GV-TIL-1',
+      label: 'LE Golden Tile - Gotchiverse'
+    },
+    '2': {
+      asset: 'GV-TIL-2',
+      label: 'LE Golden Tile - Portal'
     }
   }
 }
@@ -356,6 +385,11 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
     raffleSubmissions: [],
     raffleWins: [],
     scamAirdrops: [],
+    gotchiTransfersOut: [],
+    gotchiTransfersIn: [],
+    gotchiverseIncome: [],
+    gotchiLendingUpfrontFees: [],
+    gotchiverseCrafting: [],
     unprocessed: []
   }
 
@@ -499,8 +533,15 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
           data.gotchiSummons.push(event)
           console.log(label)
         }
+      } else if (['Claim And End Gotchi Lending'].includes(tx.method) && txGroup.erc20.length) {
+        data.gotchiverseIncome.push(txGroup)
+        console.log(tx.method + ' with income')
       } else if (isCallingAavegotchi && ['Open Portals', 'Interact', 'Set Aavegotchi Name', 'Equip Wearables',
-          'Spend Skill Points', 'Set Pet Operator For All', 'Cancel ERC721Listing', 'Cancel ERC1155Listing'].includes(tx.method)) {
+          'Spend Skill Points', 'Set Pet Operator For All', 'Cancel ERC721Listing', 'Cancel ERC1155Listing',
+          'Create Whitelist', 'Update Whitelist',
+          'Add Gotchi Lending', 'Cancel Gotchi Lending By Token',
+          'Claim And End Gotchi Lending' // we captured the version of this with erc20 income earlier
+        ].includes(tx.method)) {
         const label = tx.method
         const action = {
           txId: tx.txId,
@@ -838,6 +879,74 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
         }
       } else if (
           tx.fromAddress === address &&
+          [CONTRACT_TO_ADDRESS['GotchiTiles'], CONTRACT_TO_ADDRESS['GotchiInstallations']].includes(tx.toAddress) &&
+          ['Craft Tiles', 'Craft Installations'].includes(tx.method) &&
+          txGroup.erc1155.length
+        ) {
+
+        const acquired = []
+        const disposed = []
+
+        // Incoming tiles/installations are erc1155
+        for (const erc1155tx of txGroup.erc1155) {
+          if (erc1155tx.toAddress !== address) {
+            console.error(`Unexpected ${tx.method} erc1155 toAddress contents`, txGroup)
+          } else {
+            const amount = erc1155tx.tokenValue
+            const assetContractAddress = erc1155tx.tokenContractAddress
+            const tokenId = erc1155tx.tokenId
+            // If we already have an entry for this same erc1155, add the amount
+            const matchingEntry = acquired.find(entry => entry.assetContractAddress === assetContractAddress && entry.tokenId === tokenId)
+            if (matchingEntry) {
+              matchingEntry.amount = new BigNumber(matchingEntry.amount).plus(new BigNumber(amount)).toString()
+            } else {
+              acquired.push({
+                asset: erc1155tx.assetId,
+                assetLabel: erc1155tx.assetLabel,
+                assetContractAddress,
+                tokenId,
+                amount
+              })
+            }
+          }
+        }
+
+        // Outgoing erc20 used for crafting
+        for (const erc20tx of txGroup.erc20) {
+          if (erc20tx.fromAddress === address && erc20tx.toAddress !== address) {
+            const amount = erc20tx.tokenValue
+            const assetContractAddress = erc20tx.tokenContractAddress
+            // If we already have an entry for this same erc20, add the amount
+            const matchingEntry = disposed.find(entry => entry.assetContractAddress === assetContractAddress)
+            if (matchingEntry) {
+              matchingEntry.amount = new BigNumber(matchingEntry.amount).plus(new BigNumber(amount)).toString()
+            } else {
+              disposed.push({
+                asset: erc20tx.token,
+                assetContractAddress,
+                amount
+              })
+            }
+          } else {
+            console.error(`Unexpected erc20tx contents in ${tx.method}`, txGroup)
+          }
+        }
+
+        const label = `${tx.method}: ${acquired.map(item => `${item.amount} "${item.assetLabel}"`).join(', ')} for ${disposed.map(item => `${item.amount} ${item.asset}`).join(', ')}`
+        data.gotchiverseCrafting.push({
+          txId: tx.txId,
+          date: tx.date,
+          label,
+          acquired,
+          disposed,
+          fees: [{
+            asset: 'MATIC',
+            amount: tx.maticValueFee
+          }]
+        })
+        console.log(label)
+      } else if (
+          tx.fromAddress === address &&
           [CONTRACT_TO_ADDRESS['1inch'], CONTRACT_TO_ADDRESS['1inch2'], CONTRACT_TO_ADDRESS['Zapper'], CONTRACT_TO_ADDRESS['QuickSwap']].includes(tx.toAddress) &&
           ['0x7c025200', 'Zap Out', '0x415565b0'].includes(tx.method)
         ) {
@@ -1071,8 +1180,70 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
     } else {
       // Handle txGroup without a main transaction
 
-      // Baazaar sales
+      const ALCHEMICA_ADDRESSES = ['FUD', 'FOMO', 'ALPHA', 'KEK'].map(token => TOKEN_TO_ADDRESS[token])
+
       if (
+        // Gotchi transfer out (ERC721): could be Baazaar or Lending, will need more info
+        //  sent Aavegotchi ERC721
+        txGroup.erc721.length === 1 &&
+        txGroup.erc721[0].fromAddress === address &&
+        txGroup.erc721[0].tokenContractAddress === CONTRACT_TO_ADDRESS['Aavegotchi']
+      ) {
+        data.gotchiTransfersOut.push(txGroup)
+        // console.log('Gotchi transfer out (to inspect)')
+
+      } else if (
+        // Gotchi transfer in (ERC721): could be a gift or Lending, will need more info
+        //  no other assets moved
+        txGroup.erc20.length === 0 &&
+        txGroup.erc1155.length === 0 &&
+        //  received Aavegotchi ERC721
+        txGroup.erc721.length === 1 &&
+        txGroup.erc721[0].toAddress === address &&
+        txGroup.erc721[0].tokenContractAddress === CONTRACT_TO_ADDRESS['Aavegotchi']
+      ) {
+
+        data.gotchiTransfersIn.push(txGroup)
+        // console.log('Gotchi transfer in (to inspect)')
+
+      // Gotchiverse
+      } else if (
+        txGroup.erc721.length === 0 &&
+        txGroup.erc1155.length === 0 &&
+        txGroup.erc20.length &&
+        txGroup.erc20.every(
+          erc20tx => erc20tx.toAddress === address &&
+            [CONTRACT_TO_ADDRESS['VersePayout'], CONTRACT_TO_ADDRESS['VersePayout2'], CONTRACT_TO_ADDRESS['VersePayout3'], CONTRACT_TO_ADDRESS['GotchiRealm']].includes(erc20tx.fromAddress) &&
+            ALCHEMICA_ADDRESSES.includes(erc20tx.tokenContractAddress)
+        )
+      ) {
+        data.gotchiverseIncome.push(txGroup)
+        // console.log('Gotchiverse income')
+      } else if (
+        txGroup.erc721.length === 1 &&
+        txGroup.erc721[0].tokenContractAddress === CONTRACT_TO_ADDRESS['Aavegotchi'] &&
+        txGroup.erc721[0].toAddress === address &&
+        txGroup.erc1155.length === 0 &&
+        txGroup.erc20.length &&
+        txGroup.erc20.every(
+          erc20tx => erc20tx.toAddress === address && ALCHEMICA_ADDRESSES.includes(erc20tx.tokenContractAddress)
+        )
+      ) {
+        data.gotchiverseIncome.push(txGroup)
+        // console.log('Gotchiverse claimAndEndGotchiLending by borrower with income (alchemica)')
+      } else if (
+        txGroup.erc721.length === 0 &&
+        txGroup.erc1155.length === 0 &&
+        txGroup.erc20.length &&
+        txGroup.erc20.every(
+          erc20tx => erc20tx.toAddress === address && ALCHEMICA_ADDRESSES.includes(erc20tx.tokenContractAddress)
+        )
+      ) {
+        data.gotchiverseIncome.push(txGroup)
+        // we'll have to look up the main contract/method called later
+        // console.log('Possibly Gotchiverse income (alchemica), or a transfer in ' + txGroup.txId)
+      // Baazaar sales
+      } else if (
         // Look for Baazaar sale pattern (ERC1155):
         //  received GHST
         txGroup.erc20.length === 1 &&
@@ -1293,6 +1464,175 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
   // Fetch additional data necessary to fully understand the transactions
 
   console.log(`----------- Fetch additional info -----------`)
+
+  // Lending
+  let gotchiDiamondAbi = await readJsonFile('./gotchiDiamondAbi.json')
+  let gotchiDiamondIface = new ethers.utils.Interface(gotchiDiamondAbi)
+  let provider = new ethers.providers.JsonRpcProvider('https://polygon-rpc.com/')
+
+  // Process gotchiverseIncome events to standard format, with maticValueFee (if has 'main' tx) and ERC20 tokens.
+  const gotchiverseIncomeToKeep = []
+  for (const txGroup of data.gotchiverseIncome) {
+    // Warn if unexpected format
+    if (!txGroup.erc20.length ||
+      txGroup.internal.length ||
+      txGroup.erc1155.length ||
+      txGroup.erc721.length > 1 ||
+      txGroup.erc721[0] && txGroup.erc721[0].tokenContractAddress !== CONTRACT_TO_ADDRESS['Aavegotchi']
+    ) {
+      console.error(`Unexpected txGroup contents for gotchiverseIncome ${txGroup.txId}`)
+      continue
+    }
+    // Confirm that this is a lending event
+    const tx = await fetchTransactionEthers(provider, txGroup.txId)
+    let knownMethod = null
+    if (tx.to.toLowerCase() === CONTRACT_TO_ADDRESS['Aavegotchi']) {
+      const decodedInput = gotchiDiamondIface.parseTransaction({ data: tx.data, value: tx.value })
+      knownMethod = decodedInput.name
+    } else if ([CONTRACT_TO_ADDRESS['VersePayout'], CONTRACT_TO_ADDRESS['VersePayout2'], CONTRACT_TO_ADDRESS['VersePayout3']].includes(tx.from.toLowerCase())) {
+      knownMethod = 'Batch payout'
+    } else {
+      // console.log(`Unexpected gotchiverseIncome tx ${txGroup.txId}`)
+      // we'll store this elsewhere in data
+    }
+
+    // Extract income
+    const date = txGroup.erc20[0].date
+    const acquired = []
+    for (const erc20tx of txGroup.erc20) {
+      if (erc20tx.tokenValue !== '0') {
+        acquired.push({
+          asset: erc20tx.token,
+          assetContractAddress: erc20tx.tokenContractAddress,
+          amount: erc20tx.tokenValue
+        })
+      }
+    }
+    if (!acquired.length) {
+      // no income to record
+      // If this was self-submitted, log it as a game event for the MATIC fee
+      if (txGroup.main.length) {
+        data.gameActions.push({
+            txId: txGroup.txId,
+            date,
+            maticValueFee: txGroup.main[0].maticValueFee,
+            label: txGroup.main[0].method
+        })
+        console.log(`Gotchiverse ${txGroup.main[0].method} (no income)`)
+      } else {
+        // console.log('Gotchiverse claim without income')
+      }
+    } else {
+      // record income
+      const fees = []
+      if (txGroup.main.length) {
+        fees.push({
+          asset: 'MATIC',
+          amount: txGroup.main[0].maticValueFee
+        })
+      }
+      if (knownMethod) {
+        const label = `Gotchiverse income (${acquired.map(item => `${item.amount} ${item.asset}`).join(', ')}) via ${knownMethod}`
+        console.log(label)
+        gotchiverseIncomeToKeep.push({
+          txId: txGroup.txId,
+          date,
+          label,
+          acquired,
+          fees
+        })
+      } else {
+        // Not recognised as gotchiverse income, so record as deposit or unprocessed
+        if (!txGroup.main.length) {
+          const fromAddress = tx.from.toLowerCase()
+          const label = `Receive ${acquired.map(item => `${item.amount} ${item.asset}`).join(', ')} from ${fromAddress}`
+          data.deposits.push({
+            txId: txGroup.txId,
+            date,
+            label,
+            fromAddress,
+            acquired
+          })
+          console.log(label)
+        } else {
+          data.unprocessed.push(txGroup)
+        }
+      }
+    }
+  }
+  data.gotchiverseIncome = gotchiverseIncomeToKeep
+
+  // Fetch tx for gotchiTransfersOut and gotchiTransfersIn:
+  //   - if from lending, remove from this list
+  //      - if gotchiTransfersOut has GHST received from upfront fee, log this
+  //   - leave remaining gotchiTransfersIn/gotchiTransfersOut in this list for manual review
+
+  const gotchiTransfersOutToKeep = []
+  for (const txGroup of data.gotchiTransfersOut) {
+    const tx = await fetchTransactionEthers(provider, txGroup.txId)
+    // console.log({ tx })
+    const decodedInput = gotchiDiamondIface.parseTransaction({ data: tx.data, value: tx.value })
+    // console.log({
+    //   txId: txGroup.txId,
+    //   name: decodedInput.name,
+    //   signature: decodedInput.signature,
+    //   args: decodedInput.args
+    // })
+    if (decodedInput.name === 'agreeGotchiLending') {
+      // We'll ignore the gotchi transfer for lending, but there may be some income to log
+      if (
+        // Look for GHST fee received
+        txGroup.erc20.length === 1 &&
+        txGroup.erc20[0].tokenContractAddress === TOKEN_TO_ADDRESS['GHST'] &&
+        txGroup.erc20[0].toAddress === address
+      ) {
+        const erc20tx = txGroup.erc20[0]
+        const ghstAmount = erc20tx.tokenValue
+        const label = `Gotchi lending agreed (${ghstAmount} GHST fee)`
+        data.gotchiLendingUpfrontFees.push({
+          txId: txGroup.txId,
+          date: erc20tx.date,
+          label,
+          acquired: [
+            {
+              asset: "GHST",
+              assetContractAddress: erc20tx.tokenContractAddress,
+              amount: ghstAmount
+            }
+          ]
+        })
+        console.log(label)
+      } else {
+        console.log('Gotchi lending agreed (no fee) ' + txGroup.txId)
+      }
+    } else {
+      // Misc other gotchi transfer
+      gotchiTransfersOutToKeep.push(txGroup)
+      console.log(`Gotchi transfer ${decodedInput.name}`)
+    }
+  }
+  data.gotchiTransfersOut = gotchiTransfersOutToKeep
+
+  // These gotchi transfers-in don't have income (those would have been put in gotchiverseIncome earlier)
+  const gotchiTransfersInToKeep = []
+  for (const txGroup of data.gotchiTransfersIn) {
+    const tx = await fetchTransactionEthers(provider, txGroup.txId)
+    // console.log({ tx })
+    const decodedInput = gotchiDiamondIface.parseTransaction({ data: tx.data, value: tx.value })
+    if (decodedInput.name === 'claimAndEndGotchiLending') {
+      console.log('Gotchi lending finished by borrower (no income to record) ' + txGroup.txId)
+    } else {
+      gotchiTransfersInToKeep.push(txGroup)
+    }
+  }
+  data.gotchiTransfersIn = gotchiTransfersInToKeep
+
+  console.log(`After processing lending, we now have ${Object.keys(allTransactions).length} transactions: found for ${Object.entries(data).map(([id, list]) => id === 'address' ? list : `${list.length} ${id}`).join(', ')}`)
+
+
+  // GBM
+  // TODO switch over to ethers to fetch and parse txs
+
   let gbmAbi = await readJsonFile('./gbmDiamondAbi.json')
   let gbmIface = new ethers.utils.Interface(gbmAbi)
 
