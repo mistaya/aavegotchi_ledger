@@ -60,7 +60,10 @@ const ADDRESS_TO_CONTRACT = {
   '0x1111111254fb6c44bac0bed2854e76f90643097d': '1inch2',
   '0x8dfdea6a4818d2aa7463edb9a8841cb0c04255af': 'Zapper',
   '0xdef1c0ded9bec7f1a1670819833240f027b25eff': 'QuickSwap',
-  '0x2953399124f0cbb46d2cbacd8a89cf0599974963': 'OpenSeaCollections'
+  '0x2953399124f0cbb46d2cbacd8a89cf0599974963': 'OpenSeaCollections',
+  '0x1bfa729883fd32f13873f6933bc68958251f611a': 'Scam_Token_LABUBL',
+  '0x2953399124f0cbb46d2cbacd8a89cf0599974963': 'Scam_Token_OPENSTORE',
+  '0xfd1dbd4114550a867ca46049c346b6cd452ec919': 'Scam_Token_Filomagia'
 }
 
 const CONTRACT_TO_ADDRESS = Object.fromEntries(Object.entries(ADDRESS_TO_CONTRACT).map(([id, value]) => [value, id]))
@@ -538,7 +541,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
         console.log(tx.method + ' with income')
       } else if (isCallingAavegotchi && ['Open Portals', 'Interact', 'Set Aavegotchi Name', 'Equip Wearables',
           'Spend Skill Points', 'Set Pet Operator For All', 'Cancel ERC721Listing', 'Cancel ERC1155Listing',
-          'Create Whitelist', 'Update Whitelist',
+          'Create Whitelist', 'Update Whitelist', 'Remove Addresses From Whitelist',
           'Add Gotchi Lending', 'Cancel Gotchi Lending By Token',
           'Claim And End Gotchi Lending' // we captured the version of this with erc20 income earlier
         ].includes(tx.method)) {
