@@ -14,6 +14,7 @@ const ADDRESS_TO_TOKEN = {
   '0x44a6e0be76e1d9620a7f76588e4509fe4fa8e8c8': 'FOMO',
   '0x6a3e7c3c6ef65ee26975b12293ca1aad7e1daed2': 'ALPHA',
   '0x42e5e06ef5b90fe15f853f59299fc96259209c5c': 'KEK',
+  '0x3801c3b3b5c98f88a9c9005966aa96aa440b9afc': 'GLTR',
   '0xc2132d05d31c914a87c6611c10748aeb04b58e8f': 'USDT',
   '0x2791bca1f2de4661ed88a30c99a7a9449aa84174': 'USDC',
   '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063': 'DAI',
@@ -23,6 +24,7 @@ const ADDRESS_TO_TOKEN = {
   '0x8df3aad3a84da6b69a4da8aec3ea40d9091b2ac4': 'amWMATIC',
   '0x28424507fefb6f7f8e9d3860f56504e4e5f5f390': 'amWETH',
   '0x8c8bdbe9cee455732525086264a4bf9cf821c498': 'maUNI',
+  '0x73958d46b7aa2bc94926d8a215fa560a5cdca3ea': 'wapGHST',
   '0x6e14790535c04b1a58592fbee6109d9bc57a51ad': 'VLT',
   '0xce899f26928a2b21c6a2fddd393ef37c61dba918': 'MOCA',
   '0xe4fb1bb8423417a460286b0ed44b64e104c5fae5': 'Scam_Token_Zepe',
@@ -39,7 +41,20 @@ const ADDRESS_TO_TOKEN = {
   '0xd7f1d4f5a1b44d827a7c3cc5dd46a80fade55558': 'Scam_Token_Zers',
   '0x22e51bae3f545255e115090202a23c7ede0b00b9': 'Scam_Token_LELX',
   '0x14f2c84a58e065c846c5fdddade0d3548f97a517': 'Scam_Token_MATICSWAP',
-  '0xf31cdb090d1d4b86a7af42b62dc5144be8e42906': 'Scam_Token_0Bets'
+  '0xf31cdb090d1d4b86a7af42b62dc5144be8e42906': 'Scam_Token_0Bets',
+  '0x92face859e48c5d70510bf9bbc60a4b4c4fc8b98': 'Scam_Token_ERC20',
+  '0x2f11137deec67b5adaf24b49381709b312a6dcf2': 'Scam_Token_$Aavegotchi_GHST',
+  '0x650a15efcef2c0420d1242dec0c4e5975ccf842b': 'Scam_Token_goodgames',
+  '0x5229cadb824fd5117f00e3614c138b62f2bd3156': 'Scam_Token_0x5229c',
+  '0x913d3da68394eeafc22f5bd43407f2d1d7cfa172': 'Scam_Token_BirdCoin',
+  '0x10657d9bb24b4cd808e42ef4ad4c0fd3b07ddb21': 'Scam_Token_2XBNB',
+  '0x7f4c2f7671e6817bb01195d24e4eafc94435f5d0': 'Scam_Token_0x7f4c',
+  '0x7a52be6bfe2ee945ab347b56670829b763d73861': 'Scam_Token_Owlswap',
+  '0x0f1f17e4260515d9bfe805cff323374eb771eae6': 'Scam_Token_Rickogon',
+  '0x8a6b62f5501410d179641e731a8f1cecef1c28ec': 'Scam_Token_PolygonClassics',
+  '0xaf6b1a3067bb5245114225556e5b7a52cf002752': 'Scam_Token_0xaf6b1a',
+  '0xcf68f02d7dd6a4642ae6a77f6a3676d0cbc834c9': 'Scam_Token_GGBoxs',
+  '0x2e618eabe66818f4c6718c24f59c5694f0b2735a': 'Scam_Token_SIMP'
 }
 const TOKEN_TO_ADDRESS = Object.fromEntries(Object.entries(ADDRESS_TO_TOKEN).map(([id, value]) => [value, id]))
 
@@ -56,14 +71,28 @@ const ADDRESS_TO_CONTRACT = {
   '0x2c1a288353e136b9e4b467aadb307133fffeab25': 'VersePayout', // Alchemica payouts from Gotchiverse Apr 2022
   '0xa0f32863ac0e82d36df959a95fedb661c1d32a6f': 'VersePayout2', // Alchemica payouts from Gotchiverse Apr 2022
   '0xc57feb6d8d5edfcce4027c243dceb2b51b0e318b': 'VersePayout3', // Alchemica payouts from Gotchiverse Apr 2022
+  '0xdd564df884fd4e217c9ee6f65b4ba6e5641eac63': 'GotchiVault',
   '0x11111112542d85b3ef69ae05771c2dccff4faa26': '1inch',
   '0x1111111254fb6c44bac0bed2854e76f90643097d': '1inch2',
+  '0x1111111254eeb25477b68fb85ed929f73a960582': '1inch3',
   '0x8dfdea6a4818d2aa7463edb9a8841cb0c04255af': 'Zapper',
   '0xdef1c0ded9bec7f1a1670819833240f027b25eff': 'QuickSwap',
   '0x2953399124f0cbb46d2cbacd8a89cf0599974963': 'OpenSeaCollections',
+  '0xdb46d1dc155634fbc732f92e853b10b288ad5a1d': 'LensProtocolProfiles',
   '0x1bfa729883fd32f13873f6933bc68958251f611a': 'Scam_Token_LABUBL',
   '0x2953399124f0cbb46d2cbacd8a89cf0599974963': 'Scam_Token_OPENSTORE',
-  '0xfd1dbd4114550a867ca46049c346b6cd452ec919': 'Scam_Token_Filomagia'
+  '0xfd1dbd4114550a867ca46049c346b6cd452ec919': 'Scam_Token_Filomagia',
+  '0x50a289670273ffbd841bebc3a515dd968d65971a': 'Scam_Token_WETH_blockwin',
+  '0xb947f81db6b8512b09d9671d030a8aab2f77ed1c': 'Scam_Token_OWN',
+  '0xeb3035bcdb1d1703f926e8dca30f4a7c0e469256': 'Scam_Token_Waifumon',
+  '0xa554f5abe8a530b7ff6c61e4d70459d9ffae6652': 'Scam_Token_MATICART',
+  '0x6609ab0e9feed35988a4c5aaaae11203f9de1be2': 'Scam_Token_MATICART2',
+  '0xfc5b66fd000eaf6ae6b0bb938457220dd51d47f3': 'Scam_Token_MATICART3',
+  '0x60c6ee7ff8d89f57dc0691ad50040c3d7c089b85': 'Scam_Token_MATICART4',
+  '0x9aeb92ef2579822e53c82d601c812eec6cd6d988': 'Scam_Token_MATICART5',
+  '0x875e8bbb88ff6361cd20032ee0b1f5136f928cc2': 'Scam_Token_MATICART6',
+  '0x2ac2eb99a696cee368699eb4ad7217f8a706b905': 'Scam_Token_MATICART7',
+  '0x612ee4bfd2ee2eaa7ef44120543c78ab4bd16635': 'Scam_Token_MATICART8'
 }
 
 const CONTRACT_TO_ADDRESS = Object.fromEntries(Object.entries(ADDRESS_TO_CONTRACT).map(([id, value]) => [value, id]))
@@ -115,7 +144,133 @@ const CONTRACT_ERC1155 = {
   '0x19f870bd94a34b3adaa9caa439d333da18d6812a': {
     '1': {
       asset: 'GV-LGA',
-      label: 'LE Golden Aaltaar'
+      label: 'LE Golden Aaltaar',
+      upgradesTo: '2'
+    },
+    '10': {
+      asset: 'GV-ALT-1',
+      label: 'Aaltaar L1',
+      upgradesTo: '11'
+    },
+    '11': {
+      asset: 'GV-ALT-2',
+      label: 'Aaltaar L2',
+      upgradesTo: '12'
+    },
+    '12': {
+      asset: 'GV-ALT-3',
+      label: 'Aaltaar L3',
+      upgradesTo: '13'
+    },
+    '13': {
+      asset: 'GV-ALT-4',
+      label: 'Aaltaar L4',
+      upgradesTo: '14'
+    },
+    '14': {
+      asset: 'GV-ALT-5',
+      label: 'Aaltaar L5',
+      upgradesTo: '15'
+    },
+    '65': {
+      asset: 'GV-HRV-FOMO-1',
+      label: 'FOMO Harvester L1',
+      upgradesTo: '66'
+    },
+    '66': {
+      asset: 'GV-HRV-FOMO-2',
+      label: 'FOMO Harvester L2',
+      upgradesTo: '67'
+    },
+    '67': {
+      asset: 'GV-HRV-FOMO-3',
+      label: 'FOMO Harvester L3',
+      upgradesTo: '68'
+    },
+    '68': {
+      asset: 'GV-HRV-FOMO-4',
+      label: 'FOMO Harvester L4',
+      upgradesTo: '69'
+    },
+    '69': {
+      asset: 'GV-HRV-FOMO-5',
+      label: 'FOMO Harvester L5',
+      upgradesTo: '70'
+    },
+    '83': {
+      asset: 'GV-HRV-KEK-1',
+      label: 'KEK Harvester L1',
+      upgradesTo: '84'
+    },
+    '84': {
+      asset: 'GV-HRV-KEK-2',
+      label: 'KEK Harvester L2',
+      upgradesTo: '85'
+    },
+    '85': {
+      asset: 'GV-HRV-KEK-3',
+      label: 'KEK Harvester L3',
+      upgradesTo: '86'
+    },
+    '86': {
+      asset: 'GV-HRV-KEK-4',
+      label: 'KEK Harvester L4',
+      upgradesTo: '87'
+    },
+    '87': {
+      asset: 'GV-HRV-KEK-5',
+      label: 'KEK Harvester L5',
+      upgradesTo: '88'
+    },
+    '101': {
+      asset: 'GV-RES-FOMO-1',
+      label: 'FOMO Reservoir L1',
+      upgradesTo: '102'
+    },
+    '102': {
+      asset: 'GV-RES-FOMO-2',
+      label: 'FOMO Reservoir L2',
+      upgradesTo: '103'
+    },
+    '103': {
+      asset: 'GV-RES-FOMO-3',
+      label: 'FOMO Reservoir L3',
+      upgradesTo: '104'
+    },
+    '104': {
+      asset: 'GV-RES-FOMO-4',
+      label: 'FOMO Reservoir L4',
+      upgradesTo: '105'
+    },
+    '105': {
+      asset: 'GV-RES-FOMO-5',
+      label: 'FOMO Reservoir L5',
+      upgradesTo: '106'
+    },
+    '119': {
+      asset: 'GV-RES-KEK-1',
+      label: 'KEK Reservoir L1',
+      upgradesTo: '120'
+    },
+    '120': {
+      asset: 'GV-RES-KEK-2',
+      label: 'KEK Reservoir L2',
+      upgradesTo: '121'
+    },
+    '121': {
+      asset: 'GV-RES-KEK-3',
+      label: 'KEK Reservoir L3',
+      upgradesTo: '122'
+    },
+    '122': {
+      asset: 'GV-RES-KEK-4',
+      label: 'KEK Reservoir L4',
+      upgradesTo: '123'
+    },
+    '123': {
+      asset: 'GV-RES-KEK-5',
+      label: 'KEK Reservoir L5',
+      upgradesTo: '124'
     }
   },
   '0x9216c31d8146bcb3ea5a9162dc1702e8aedca355': {
@@ -126,6 +281,18 @@ const CONTRACT_ERC1155 = {
     '2': {
       asset: 'GV-TIL-2',
       label: 'LE Golden Tile - Portal'
+    },
+    '3': {
+      asset: 'GV-TIL-3',
+      label: 'LE Golden Tile - Gotchi'
+    },
+    '4': {
+      asset: 'GV-TIL-4',
+      label: 'LE Purple Grass'
+    },
+    '6': {
+      asset: 'GV-TIL-6',
+      label: 'LE Cyan Grass'
     }
   }
 }
@@ -139,6 +306,10 @@ const importWearables = async function () {
       label: wearable.name
     }
   }
+}
+
+const getInstallationAsset = function (installationId) {
+  return CONTRACT_ERC1155[CONTRACT_TO_ADDRESS['GotchiInstallations']][installationId]
 }
 
 module.exports.processExports = async (address, fileExport, fileExportInternal, fileExportERC20, fileExportERC721, fileExportERC1155, filenameOut) => {
@@ -217,6 +388,8 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
     })
   }
 
+  // "Txhash","Blockno","UnixTimestamp","DateTime","ParentTxFrom","ParentTxTo","ParentTxMATIC_Value","From","TxTo",
+  // "ContractAddress","Value_IN(MATIC)","Value_OUT(MATIC)","CurrentValue @ $1.271/MATIC","Historical $Price/MATIC","Status","ErrCode","Type"
   const internalTxColumns = [
     'txId',
     'block',
@@ -257,7 +430,9 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
     }
   }
 
-  const erc20TxColumns = [
+  // Older format:
+  // "Txhash","UnixTimestamp","DateTime","From","To","Value","ContractAddress","TokenName","TokenSymbol"
+  const erc20TxColumns1 = [
     'txId',
     'timestamp',
     'date',
@@ -268,7 +443,31 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
     'tokenName',
     'tokenSymbol'
   ]
-  const erc20Txs = await readCsvFile(fileExportERC20, erc20TxColumns)
+
+  // "Txhash","Blockno","UnixTimestamp","DateTime","From","To","TokenValue","USDValueDayOfTx","ContractAddress","TokenName","TokenSymbol"
+  const erc20TxColumns2 = [
+    'txId',
+    'block',
+    'timestamp',
+    'date',
+    'fromAddress',
+    'toAddress',
+    'tokenValue',
+    'usdValue',
+    'tokenContractAddress',
+    'tokenName',
+    'tokenSymbol'
+  ]
+
+  const findErc20TxColumns = function (fileContents) {
+    const firstLine = fileContents.substring(0, fileContents.indexOf('\n'))
+    if (firstLine.includes('Blockno')) {
+      return erc20TxColumns2
+    }
+    return erc20TxColumns1
+  }
+
+  const erc20Txs = await readCsvFile(fileExportERC20, findErc20TxColumns)
   for (const tx of erc20Txs) {
     initTransaction(tx.txId)
     allTransactions[tx.txId].erc20.push({
@@ -282,11 +481,13 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
       tokenSymbolFromPolygonscan: tx.tokenSymbol
     })
     if (!ADDRESS_TO_TOKEN[tx.tokenContractAddress]) {
-      console.log(`ERC20 transaction for unknown token: ${tx.tokenContractAddress}`)
+      console.log(`ERC20 transaction for unknown token: ${tx.tokenContractAddress}`, tx)
     }
   }
 
-  const erc721TxColumns = [
+  // Older format
+  // "Txhash","UnixTimestamp","DateTime","From","To","ContractAddress","TokenId","TokenName","TokenSymbol"
+  const erc721TxColumns1 = [
     'txId',
     'timestamp',
     'date',
@@ -297,7 +498,30 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
     'tokenName',
     'tokenSymbol'
   ]
-  const erc721Txs = await readCsvFile(fileExportERC721, erc721TxColumns)
+
+  // "Txhash","Blockno","UnixTimestamp","DateTime","From","To","ContractAddress","TokenId","TokenName","TokenSymbol"
+  const erc721TxColumns2 = [
+    'txId',
+    'block',
+    'timestamp',
+    'date',
+    'fromAddress',
+    'toAddress',
+    'tokenContractAddress',
+    'tokenId',
+    'tokenName',
+    'tokenSymbol'
+  ]
+
+  const findErc721TxColumns = function (fileContents) {
+    const firstLine = fileContents.substring(0, fileContents.indexOf('\n'))
+    if (firstLine.includes('Blockno')) {
+      return erc721TxColumns2
+    }
+    return erc721TxColumns1
+  }
+
+  const erc721Txs = await readCsvFile(fileExportERC721, findErc721TxColumns)
   for (const tx of erc721Txs) {
     initTransaction(tx.txId)
     const tokenContract = ADDRESS_TO_CONTRACT[tx.tokenContractAddress] || ''
@@ -324,7 +548,9 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
     }
   }
 
-  const erc1155TxColumns = [
+  // Older format
+  // "Txhash","UnixTimestamp","DateTime","From","To","ContractAddress","TokenId", [tokenValue is missing in headers but present in rows!],"TokenName","TokenSymbol"
+  const erc1155TxColumns1 = [
     'txId',
     'timestamp',
     'date',
@@ -336,7 +562,31 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
     'tokenName',
     'tokenSymbol'
   ]
-  const erc1155Txs = await readCsvFile(fileExportERC1155, erc1155TxColumns)
+
+  // "Txhash","Blockno","UnixTimestamp","DateTime","From","To","ContractAddress","TokenId", [tokenValue is missing in headers but present in rows!], "TokenName","TokenSymbol"
+  const erc1155TxColumns2 = [
+    'txId',
+    'block',
+    'timestamp',
+    'date',
+    'fromAddress',
+    'toAddress',
+    'tokenContractAddress',
+    'tokenId',
+    'tokenValue',
+    'tokenName',
+    'tokenSymbol'
+  ]
+
+  const findErc1155TxColumns = function (fileContents) {
+    const firstLine = fileContents.substring(0, fileContents.indexOf('\n'))
+    if (firstLine.includes('Blockno')) {
+      return erc1155TxColumns2
+    }
+    return erc1155TxColumns1
+  }
+
+  const erc1155Txs = await readCsvFile(fileExportERC1155, findErc1155TxColumns)
   for (const tx of erc1155Txs) {
     initTransaction(tx.txId)
     const tokenContract = ADDRESS_TO_CONTRACT[tx.tokenContractAddress] || ''
@@ -392,7 +642,10 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
     gotchiTransfersIn: [],
     gotchiverseIncome: [],
     gotchiLendingUpfrontFees: [],
+    gotchiLendingBorrowingFees: [],
     gotchiverseCrafting: [],
+    gotchiverseInstallationsEquipped: [],
+    gotchiverseInstallationUpgrades: [],
     unprocessed: []
   }
 
@@ -406,6 +659,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
 
       const tx = txGroup.main[0]
       const isCallingAavegotchi = tx.fromAddress === address && tx.toAddress === CONTRACT_TO_ADDRESS['Aavegotchi']
+      const isCallingGotchiRealm = tx.fromAddress === address && tx.toAddress === CONTRACT_TO_ADDRESS['GotchiRealm']
 
       if (tx.errorCode === 'execution reverted') {
         data.reverted.push({
@@ -506,7 +760,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
           maticValueFee: tx.maticValueFee,
           label: 'Approve transfer of raffle tickets'
         })
-      } else if (tx.fromAddress === address && tx.toAddress === CONTRACT_TO_ADDRESS['GotchiRealm'] && tx.method === 'Set Approval For All') {
+      } else if (isCallingGotchiRealm && tx.method === 'Set Approval For All') {
         data.approvals.push({
           txId: tx.txId,
           date: tx.date,
@@ -516,6 +770,91 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
           maticValueFee: tx.maticValueFee,
           label: 'Approve transfer of AG-REALM'
         })
+      } else if (isCallingGotchiRealm && ['Equip Installation', 'Batch Equip'].includes(tx.method)) {
+        if (
+          txGroup.erc1155.length === 0 || txGroup.internal.length || txGroup.erc20.length || txGroup.erc721.length
+        ) {
+          console.error(`Unexpected 'Equip Installation' txGroup contents`, txGroup)
+        } else {
+          const erc1155tx = txGroup.erc1155[0]
+          const assets = txGroup.erc1155.map(erc1155tx => ({
+            asset: erc1155tx.assetId,
+            assetContractAddress: erc1155tx.tokenContractAddress,
+            assetLabel: erc1155tx.assetLabel,
+            amount: erc1155tx.tokenValue
+          }))
+          const label = `Equip installations ${assets.map(a => `${a.amount} ${a.assetLabel} [${a.asset}]`).join(', ')}`
+          data.gotchiverseInstallationsEquipped.push({
+            txId: tx.txId,
+            date: tx.date,
+            assets,
+            maticValueFee: tx.maticValueFee,
+            label
+          })
+          console.log(label + ' (lookup land later...)')
+        }
+      } else if (tx.fromAddress === address && tx.toAddress === CONTRACT_TO_ADDRESS['GotchiInstallations'] && tx.method === 'Upgrade Installation') {
+        if (
+          !txGroup.erc20.length || txGroup.erc721.length || txGroup.erc1155.length || txGroup.internal.length
+        ) {
+          console.error(`Unexpected 'Upgrade Installation' txGroup contents`, txGroup)
+        } else {
+          // This transaction spends alchemica to upgrade installations.
+          // It goes to multiple destinations: group them by token type, and remove any with 0 value.
+          const assetsByToken = {}
+          for (const erc20tx of txGroup.erc20) {
+            if ((erc20tx.tokenValue - 0) === 0) {
+              continue
+            }
+            if (erc20tx.fromAddress !== address) {
+              console.error(`Unexpected 'Upgrade Installation' txGroup contents: erc20 token not transferred from main address`, erc20tx)
+              continue
+            }
+            if (!assetsByToken[erc20tx.token]) {
+              assetsByToken[erc20tx.token] = {
+                asset: erc20tx.token,
+                assetContractAddress: erc20tx.tokenContractAddress,
+                amount: new BigNumber(0)
+              }
+            }
+            const asset = assetsByToken[erc20tx.token]
+            asset.amount = asset.amount.plus(new BigNumber(erc20tx.tokenValue))
+          }
+          const disposed = Object.values(assetsByToken)
+          const label = disposed.map(a => `${a.amount} ${a.asset}`).join(', ')
+          data.gotchiverseInstallationUpgrades.push({
+            txId: tx.txId,
+            date: tx.date,
+            disposed,
+            maticValueFee: tx.maticValueFee,
+            label
+          })
+          console.log(`Upgrade installation, cost ${label} (lookup land and installation later...)`)
+        }
+      } else if (isCallingAavegotchi && ['Agree Gotchi Lending'].includes(tx.method)) {
+        // The account is borrowing a gotchi, spending GHST fee and receiving a gotchi
+        if (
+          txGroup.erc20.length !== 1 || txGroup.erc721.length !== 1 || txGroup.erc1155.length || txGroup.internal.length ||
+          txGroup.erc20[0].token !== 'GHST' ||
+          txGroup.erc20[0].fromAddress !== address ||
+          txGroup.erc721[0].toAddress !== address
+        ) {
+          console.error(`Unexpected 'Agree Gotchi Lending' txGroup contents`, txGroup)
+        } else {
+          const erc20tx = txGroup.erc20[0]
+          const label = `Borrow Aavegotchi, paying ${erc20tx.tokenValue} GHST fee`
+          const event = {
+            txId: tx.txId,
+            date: tx.date,
+            asset: erc20tx.token,
+            assetContractAddress: erc20tx.tokenContractAddress,
+            amount: erc20tx.tokenValue,
+            maticValueFee: tx.maticValueFee,
+            label
+          }
+          data.gotchiLendingBorrowingFees.push(event)
+          console.log(label)
+        }
       } else if (isCallingAavegotchi && ['Claim Aavegotchi'].includes(tx.method)) {
         if (txGroup.erc20.length !== 1 || txGroup.erc721.length || txGroup.erc1155.length || txGroup.internal.length) {
           console.error(`Unexpected 'Claim Aavegotchi from Portal' txGroup contents`, txGroup)
@@ -536,15 +875,31 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
           data.gotchiSummons.push(event)
           console.log(label)
         }
-      } else if (['Claim And End Gotchi Lending'].includes(tx.method) && txGroup.erc20.length) {
+      } else if (['Claim And End Gotchi Lending', 'Channel Alchemica', 'Claim Available Alchemica'].includes(tx.method) && txGroup.erc20.length) {
         data.gotchiverseIncome.push(txGroup)
         console.log(tx.method + ' with income')
-      } else if (isCallingAavegotchi && ['Open Portals', 'Interact', 'Set Aavegotchi Name', 'Equip Wearables',
-          'Spend Skill Points', 'Set Pet Operator For All', 'Cancel ERC721Listing', 'Cancel ERC1155Listing',
-          'Create Whitelist', 'Update Whitelist', 'Remove Addresses From Whitelist',
-          'Add Gotchi Lending', 'Cancel Gotchi Lending By Token',
-          'Claim And End Gotchi Lending' // we captured the version of this with erc20 income earlier
-        ].includes(tx.method)) {
+      } else if (
+          isCallingAavegotchi && ['Open Portals', 'Interact', 'Set Aavegotchi Name', 'Equip Wearables',
+            'Spend Skill Points', 'Set Pet Operator For All', 'Cancel ERC721Listing', 'Cancel ERC1155Listing',
+            'Create Whitelist', 'Update Whitelist', 'Remove Addresses From Whitelist',
+            'Add Gotchi Lending', 'Cancel Gotchi Lending By Token',
+            'Claim And End Gotchi Lending' // we captured the version of this with erc20 income earlier
+          ].includes(tx.method)
+          ||
+          tx.toAddress === CONTRACT_TO_ADDRESS['GotchiRealm'] && [
+            'Channel Alchemica', // we captured the version of this with erc20 income earlier; no-income happens when channeling a borrowed gotchi
+            'Start Surveying',
+            'Set Parcels Access Rights'
+          ].includes(tx.method)
+          ||
+          tx.toAddress === CONTRACT_TO_ADDRESS['GotchiInstallations'] && [
+            'Finalize Upgrades' // This actually mints the upgraded installations, but we will handle them in the earlier upgrade tx; just record matic fee
+          ].includes(tx.method)
+          ||
+          tx.toAddress === '0xb4cd476e1afb22089a35a1102eae208f15ecdc79' && [
+            'Enable Pet Operator'
+          ].includes(tx.method)
+        ) {
         const label = tx.method
         const action = {
           txId: tx.txId,
@@ -950,8 +1305,8 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
         console.log(label)
       } else if (
           tx.fromAddress === address &&
-          [CONTRACT_TO_ADDRESS['1inch'], CONTRACT_TO_ADDRESS['1inch2'], CONTRACT_TO_ADDRESS['Zapper'], CONTRACT_TO_ADDRESS['QuickSwap']].includes(tx.toAddress) &&
-          ['0x7c025200', 'Zap Out', '0x415565b0'].includes(tx.method)
+          [CONTRACT_TO_ADDRESS['1inch'], CONTRACT_TO_ADDRESS['1inch2'], CONTRACT_TO_ADDRESS['1inch3'], CONTRACT_TO_ADDRESS['Zapper'], CONTRACT_TO_ADDRESS['QuickSwap']].includes(tx.toAddress) &&
+          ['0x7c025200', 'Zap Out', '0x415565b0', 'Swap'].includes(tx.method)
         ) {
         if (txGroup.erc721.length || txGroup.erc1155.length) {
           console.error(`Unexpected trade erc721/erc1155 txGroup contents`, txGroup)
@@ -1188,7 +1543,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
       if (
         // Gotchi transfer out (ERC721): could be Baazaar or Lending, will need more info
         //  sent Aavegotchi ERC721
-        txGroup.erc721.length === 1 &&
+        txGroup.erc721.length > 0 &&  // Batch claim-and-end lending can involve multiple gotchis
         txGroup.erc721[0].fromAddress === address &&
         txGroup.erc721[0].tokenContractAddress === CONTRACT_TO_ADDRESS['Aavegotchi']
       ) {
@@ -1372,6 +1727,33 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
         data.scamAirdrops.push(airdrop)
         console.log(label)
 
+      // Scam token airdrops (ERC721)
+      } else if (
+        txGroup.erc721.length === 1 &&
+        txGroup.erc721[0].toAddress === address &&
+        txGroup.erc721[0].tokenContract.startsWith('Scam_') &&
+        !txGroup.internal.length &&
+        !txGroup.erc20.length &&
+        !txGroup.erc1155.length
+      ) {
+        const erc721tx = txGroup.erc721[0]
+        const asset = `${erc721tx.tokenContract}:${erc721tx.tokenName}`
+        const amount = erc721tx.tokenValue
+        const label = `Receive scam ERC721 token airdrop: ${asset}`
+        const airdrop = {
+          txId: erc721tx.txId,
+          date: erc721tx.date,
+          acquired: [{
+            asset,
+            assetLabel: asset,
+            assetContractAddress: erc721tx.tokenContractAddress,
+            amount
+          }],
+          label
+        }
+        data.scamAirdrops.push(airdrop)
+        console.log(label)
+
       // Scam token airdrops (ERC1155)
       } else if (
         txGroup.erc1155.length === 1 &&
@@ -1468,10 +1850,99 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
 
   console.log(`----------- Fetch additional info -----------`)
 
-  // Lending
-  let gotchiDiamondAbi = await readJsonFile('./gotchiDiamondAbi.json')
-  let gotchiDiamondIface = new ethers.utils.Interface(gotchiDiamondAbi)
-  let provider = new ethers.providers.JsonRpcProvider('https://polygon-rpc.com/')
+  // Lending and gotchiverse
+  const gotchiDiamondAbi = await readJsonFile('./gotchiDiamondAbi.json')
+  const gotchiDiamondIface = new ethers.utils.Interface(gotchiDiamondAbi)
+
+  // Gotchi Realm diamond: changes over time
+  // https://louper.dev/diamond/0x1D0360BaC7299C86Ec8E99d0c1C9A95FEfaF2a11?network=polygon
+  // https://github.com/aavegotchi/aavegotchi-realm-diamond/tree/master/diamondABI
+  // diamond_realm.json
+  // 2022-06-15
+  const gotchiRealm1Abi = await readJsonFile('./gotchiRealm1Abi.json')
+  const gotchiRealm1Iface = new ethers.utils.Interface(gotchiRealm1Abi)
+  // 2022-06-28 commit removes function "0x3fa75b65"
+  // 2023-01-14
+  const gotchiRealm2Abi = await readJsonFile('./gotchiRealm2Abi.json')
+  const gotchiRealm2Iface = new ethers.utils.Interface(gotchiRealm2Abi)
+
+  // https://louper.dev/diamond/0x19f870bd94a34b3adaa9caa439d333da18d6812a?network=polygon
+  // https://github.com/aavegotchi/aavegotchi-realm-diamond/tree/master/diamondABI
+  // diamond_installation.json
+  // 2022-07-25
+  const gotchiInstallation1Abi = await readJsonFile('./gotchiInstallation1Abi.json')
+  const gotchiInstallation1Iface = new ethers.utils.Interface(gotchiInstallation1Abi)
+  // 2022-09-02 louper shows function removed "0xf5741bb8" and added "0x7a8555b9"
+  // 2023-01-14
+  const gotchiInstallation2Abi = await readJsonFile('./gotchiInstallation2Abi.json')
+  const gotchiInstallation2Iface = new ethers.utils.Interface(gotchiInstallation2Abi)
+
+  const gotchiVaultAbi = await readJsonFile('./gotchiVaultAbi.json')
+  const gotchiVaultIface = new ethers.utils.Interface(gotchiVaultAbi)
+  // let provider = new ethers.providers.JsonRpcProvider('https://polygon-rpc.com/')
+  const provider = new ethers.providers.JsonRpcProvider('https://rpc.ankr.com/polygon')
+
+  // Fetch transactions for gotchiverseInstallationsEquipped, so we can look up the land
+  for (const equippedEvent of data.gotchiverseInstallationsEquipped) {
+    const tx = await fetchTransactionEthers(provider, equippedEvent.txId)
+    const txDate = new Date(equippedEvent.date)
+    let iface
+    if (txDate - 0 < new Date('2022-06-28') - 0) {
+      // console.log('Using iface 1', equippedEvent.date)
+      iface = gotchiRealm1Iface
+    } else {
+      // console.log('Using iface 2', equippedEvent.date)
+      iface = gotchiRealm2Iface
+    }
+    const decodedInput = iface.parseTransaction({ data: tx.data, value: tx.value })
+    if (['equipInstallation', 'batchEquip'].includes(decodedInput.name)) {
+      const realmId = decodedInput.args._realmId.toString()
+      console.log(`Equipped installations to land ${realmId}`)
+      equippedEvent.realmId = realmId;
+      equippedEvent.label += ` to land ${realmId}`
+    } else {
+      console.error('Unexpected method call when equipping installations for tx', equippedEvent.txId, decodedInput)
+    }
+  }
+
+  // Fetch transactions for gotchiverseInstallationUpgrades, so we can look up the installations and land
+  for (const upgradeEvent of data.gotchiverseInstallationUpgrades) {
+    const tx = await fetchTransactionEthers(provider, upgradeEvent.txId)
+    const txDate = new Date(upgradeEvent.date)
+    let iface
+    if (txDate - 0 < new Date('2022-09-02') - 0) {
+      // console.log('Using iface 1', equippedEvent.date)
+      iface = gotchiInstallation1Iface
+    } else {
+      // console.log('Using iface 2', equippedEvent.date)
+      iface = gotchiInstallation2Iface
+    }
+    const decodedInput = iface.parseTransaction({ data: tx.data, value: tx.value })
+    // console.log(decodedInput.name, decodedInput.args)
+    const realmId = decodedInput.args._upgradeQueue.parcelId.toString()
+    const installationId = decodedInput.args._upgradeQueue.installationId.toString()
+    const installationAsset = getInstallationAsset(installationId)
+    if (!installationAsset) {
+      console.error(`Can't find installation asset ${installationId} for upgrade event ${upgradeEvent.txId}`)
+    }
+    const upgradedInstallationAssetId = installationAsset.upgradesTo
+    const upgradedInstallationAsset = getInstallationAsset(upgradedInstallationAssetId)
+    if (!upgradedInstallationAsset) {
+      console.error(`Can't find installation asset ${upgradedInstallationAssetId} for upgrade event ${upgradeEvent.txId}`)
+    }
+    upgradeEvent.realmId = realmId
+    upgradeEvent.originalInstallation = {
+      id: installationId,
+      ...installationAsset
+    },
+    upgradeEvent.upgradedInstallation = {
+      id: upgradedInstallationAssetId,
+      ...upgradedInstallationAsset
+    }
+    upgradeEvent.label = `Upgrade installation "${installationAsset.label}" [${installationId}] on land ${realmId}` +
+      ` to "${upgradedInstallationAsset.label}" [${upgradedInstallationAssetId}] (cost: ${upgradeEvent.label})`
+    console.log(upgradeEvent.label)
+  }
 
   // Process gotchiverseIncome events to standard format, with maticValueFee (if has 'main' tx) and ERC20 tokens.
   const gotchiverseIncomeToKeep = []
@@ -1486,17 +1957,26 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
       console.error(`Unexpected txGroup contents for gotchiverseIncome ${txGroup.txId}`)
       continue
     }
-    // Confirm that this is a lending event
-    const tx = await fetchTransactionEthers(provider, txGroup.txId)
+    // Confirm the type of event: channeling, harvesting, lending, batch payouts
     let knownMethod = null
-    if (tx.to.toLowerCase() === CONTRACT_TO_ADDRESS['Aavegotchi']) {
-      const decodedInput = gotchiDiamondIface.parseTransaction({ data: tx.data, value: tx.value })
-      knownMethod = decodedInput.name
-    } else if ([CONTRACT_TO_ADDRESS['VersePayout'], CONTRACT_TO_ADDRESS['VersePayout2'], CONTRACT_TO_ADDRESS['VersePayout3']].includes(tx.from.toLowerCase())) {
-      knownMethod = 'Batch payout'
+    let tx = null
+    if (
+      txGroup.main.length === 1 &&
+      txGroup.main[0].toAddress.toLowerCase() === CONTRACT_TO_ADDRESS['GotchiRealm'] &&
+      ['Channel Alchemica', 'Claim Available Alchemica'].includes(txGroup.main[0].method)
+    ) {
+      knownMethod = txGroup.main[0].method
     } else {
-      // console.log(`Unexpected gotchiverseIncome tx ${txGroup.txId}`)
-      // we'll store this elsewhere in data
+      tx = await fetchTransactionEthers(provider, txGroup.txId)
+      if (tx.to.toLowerCase() === CONTRACT_TO_ADDRESS['Aavegotchi']) {
+        const decodedInput = gotchiDiamondIface.parseTransaction({ data: tx.data, value: tx.value })
+        knownMethod = decodedInput.name
+      } else if ([CONTRACT_TO_ADDRESS['VersePayout'], CONTRACT_TO_ADDRESS['VersePayout2'], CONTRACT_TO_ADDRESS['VersePayout3']].includes(tx.from.toLowerCase())) {
+        knownMethod = 'Batch payout'
+      } else {
+        // console.log(`Unexpected gotchiverseIncome tx ${txGroup.txId}`)
+        // we'll store this elsewhere in data
+      }
     }
 
     // Extract income
@@ -1546,7 +2026,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
         })
       } else {
         // Not recognised as gotchiverse income, so record as deposit or unprocessed
-        if (!txGroup.main.length) {
+        if (!txGroup.main.length && tx) {
           const fromAddress = tx.from.toLowerCase()
           const label = `Receive ${acquired.map(item => `${item.amount} ${item.asset}`).join(', ')} from ${fromAddress}`
           data.deposits.push({
@@ -1574,14 +2054,23 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
   for (const txGroup of data.gotchiTransfersOut) {
     const tx = await fetchTransactionEthers(provider, txGroup.txId)
     // console.log({ tx })
-    const decodedInput = gotchiDiamondIface.parseTransaction({ data: tx.data, value: tx.value })
+    const toAddress = tx.to.toLowerCase()
+    let decodedInput
+    if (toAddress == CONTRACT_TO_ADDRESS['Aavegotchi']) {
+      decodedInput = gotchiDiamondIface.parseTransaction({ data: tx.data, value: tx.value })
+    } else if (toAddress === CONTRACT_TO_ADDRESS['GotchiVault']) {
+      decodedInput = gotchiVaultIface.parseTransaction({ data: tx.data, value: tx.value })
+    } else {
+      console.error(`Unrecognised contract in transaction which transfers out a gotchi. tx: ${txGroup.txId}, to: ${toAddress}`)
+    }
     // console.log({
     //   txId: txGroup.txId,
     //   name: decodedInput.name,
     //   signature: decodedInput.signature,
     //   args: decodedInput.args
     // })
-    if (decodedInput.name === 'agreeGotchiLending') {
+
+    if (toAddress == CONTRACT_TO_ADDRESS['Aavegotchi'] && decodedInput.name === 'agreeGotchiLending') {
       // We'll ignore the gotchi transfer for lending, but there may be some income to log
       if (
         // Look for GHST fee received
@@ -1607,6 +2096,39 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
         console.log(label)
       } else {
         console.log('Gotchi lending agreed (no fee) ' + txGroup.txId)
+      }
+    } else if (
+      (
+        toAddress === CONTRACT_TO_ADDRESS['GotchiVault'] &&
+        decodedInput.name === 'claimAndEndGotchiLending'
+      )
+      ||
+      (
+        toAddress === CONTRACT_TO_ADDRESS['Aavegotchi'] &&
+        decodedInput.name === 'claimAndEndGotchiLending'
+      )
+    ) {
+      // This is when an owner claims back their lent-out gotchis,
+      // which distributes any alchemica back to the borrowers.
+      // We'll ignore the gotchi transfer for lending, but there may be some income to log
+      if (txGroup.erc20.length) {
+        const acquired = txGroup.erc20.map(erc20tx => ({
+          asset: erc20tx.token,
+          assetContractAddress: erc20tx.tokenContractAddress,
+          amount: erc20tx.tokenValue
+        }))
+        const label = `Gotchiverse income (${acquired.map(item => `${item.amount} ${item.asset}`).join(', ')}) via borrowing gotchis (claimAndEndGotchiLending)`
+        const erc20tx = txGroup.erc20[0]
+        data.gotchiverseIncome.push({
+          txId: txGroup.txId,
+          date: erc20tx.date,
+          label,
+          acquired,
+          fees: []
+        })
+        console.log(label)
+      } else {
+        console.log(`Claim of borrowed gotchis without any income to record (tx: ${txGroup.txId})`)
       }
     } else {
       // Misc other gotchi transfer

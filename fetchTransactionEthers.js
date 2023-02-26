@@ -13,8 +13,8 @@ module.exports = async function (provider, transactionId) {
     // console.log({ transaction })
     await writeJsonFile(cacheFilePath, transaction)
   } else {
-    console.error(response)
     console.error(`Couldn't fetch transaction data for ${transactionId}`)
+    console.error(response)
   }
   return transaction
 }

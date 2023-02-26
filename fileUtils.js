@@ -11,6 +11,7 @@ async function readJsonFile (filename) {
 
 async function readCsvFile (filename, columns) {
   const content = await fsReadFile(filename, 'utf8')
+  columns = columns instanceof Function ? columns(content) : columns;
   return parse(content, {
     from_line: 2,
     columns,
