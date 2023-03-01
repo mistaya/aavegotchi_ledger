@@ -9,7 +9,8 @@ const ERC1155_SALES_FILENAME = 'erc1155Sales.json'
 const ERC1155_ANNOTATED_FILENAME = 'erc1155SalesAnnotated.json'
 const ERC1155_PRICES_FILENAME = 'erc1155Prices.json'
 
-const SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name/aavegotchi/aavegotchi-core-matic'
+//const SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name/aavegotchi/aavegotchi-core-matic'
+const SUBGRAPH_URL = 'https://subgraph.satsuma-prod.com/tWYl5n5y04oz/aavegotchi/aavegotchi-core-matic/api'
 const FETCH_PAGE_SIZE = 1000
 
 const fetchErc721Sales = function () {
