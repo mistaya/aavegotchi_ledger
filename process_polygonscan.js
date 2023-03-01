@@ -54,7 +54,8 @@ const ADDRESS_TO_TOKEN = {
   '0x8a6b62f5501410d179641e731a8f1cecef1c28ec': 'Scam_Token_PolygonClassics',
   '0xaf6b1a3067bb5245114225556e5b7a52cf002752': 'Scam_Token_0xaf6b1a',
   '0xcf68f02d7dd6a4642ae6a77f6a3676d0cbc834c9': 'Scam_Token_GGBoxs',
-  '0x2e618eabe66818f4c6718c24f59c5694f0b2735a': 'Scam_Token_SIMP'
+  '0x2e618eabe66818f4c6718c24f59c5694f0b2735a': 'Scam_Token_SIMP',
+  '0x68c929e7b8fb06c58494a369f6f088fff28f7c77': 'Scam_Token_0Betsio'
 }
 const TOKEN_TO_ADDRESS = Object.fromEntries(Object.entries(ADDRESS_TO_TOKEN).map(([id, value]) => [value, id]))
 
@@ -68,6 +69,7 @@ const ADDRESS_TO_CONTRACT = {
   '0x6c723cac1e35fe29a175b287ae242d424c52c1ce': 'GotchiRaffles', // Raffle submission/claiming
   '0xa44c8e0ecaefe668947154ee2b803bd4e6310efe': 'GotchiGBM_Land', // Land Auction 1 (2021-10) and 2 (2021-12)
   '0x1d86852b823775267ee60d98cbcda9e8d5c2faa7': 'GotchiGBM_2021-07', // Wearables GBM 1
+  '0xa4e3513c98b30d4d7cc578d2c328bd550725d1d0': 'FAKEGotchis',
   '0x2c1a288353e136b9e4b467aadb307133fffeab25': 'VersePayout', // Alchemica payouts from Gotchiverse Apr 2022
   '0xa0f32863ac0e82d36df959a95fedb661c1d32a6f': 'VersePayout2', // Alchemica payouts from Gotchiverse Apr 2022
   '0xc57feb6d8d5edfcce4027c243dceb2b51b0e318b': 'VersePayout3', // Alchemica payouts from Gotchiverse Apr 2022
@@ -92,7 +94,8 @@ const ADDRESS_TO_CONTRACT = {
   '0x9aeb92ef2579822e53c82d601c812eec6cd6d988': 'Scam_Token_MATICART5',
   '0x875e8bbb88ff6361cd20032ee0b1f5136f928cc2': 'Scam_Token_MATICART6',
   '0x2ac2eb99a696cee368699eb4ad7217f8a706b905': 'Scam_Token_MATICART7',
-  '0x612ee4bfd2ee2eaa7ef44120543c78ab4bd16635': 'Scam_Token_MATICART8'
+  '0x612ee4bfd2ee2eaa7ef44120543c78ab4bd16635': 'Scam_Token_MATICART8',
+  '0x33d3a5c1e523b0aee0b6d9ec22f520f9f99a1738': 'Scam_Token_999USDT_wincoin'
 }
 
 const CONTRACT_TO_ADDRESS = Object.fromEntries(Object.entries(ADDRESS_TO_CONTRACT).map(([id, value]) => [value, id]))
@@ -2105,19 +2108,36 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
       ||
       (
         toAddress === CONTRACT_TO_ADDRESS['Aavegotchi'] &&
-        decodedInput.name === 'claimAndEndGotchiLending'
+        ['claimAndEndGotchiLending', 'batchClaimAndEndGotchiLending'].includes(decodedInput.name)
       )
     ) {
       // This is when an owner claims back their lent-out gotchis,
       // which distributes any alchemica back to the borrowers.
       // We'll ignore the gotchi transfer for lending, but there may be some income to log
       if (txGroup.erc20.length) {
-        const acquired = txGroup.erc20.map(erc20tx => ({
-          asset: erc20tx.token,
-          assetContractAddress: erc20tx.tokenContractAddress,
-          amount: erc20tx.tokenValue
-        }))
-        const label = `Gotchiverse income (${acquired.map(item => `${item.amount} ${item.asset}`).join(', ')}) via borrowing gotchis (claimAndEndGotchiLending)`
+        // Group by ERC20 token type
+        const assetsByToken = {}
+        for (const erc20tx of txGroup.erc20) {
+          if ((erc20tx.tokenValue - 0) === 0) {
+            continue
+          }
+          if (erc20tx.toAddress !== address) {
+            console.error(`Unexpected '${decodedInput.name}' txGroup contents: erc20 token not transferred to main address`, erc20tx)
+            continue
+          }
+          if (!assetsByToken[erc20tx.token]) {
+            assetsByToken[erc20tx.token] = {
+              asset: erc20tx.token,
+              assetContractAddress: erc20tx.tokenContractAddress,
+              amount: new BigNumber(0)
+            }
+          }
+          const asset = assetsByToken[erc20tx.token]
+          asset.amount = asset.amount.plus(new BigNumber(erc20tx.tokenValue))
+        }
+        const acquired = Object.values(assetsByToken)
+
+        const label = `Gotchiverse income (${acquired.map(item => `${item.amount} ${item.asset}`).join(', ')}) via borrowing gotchis (${decodedInput.name})`
         const erc20tx = txGroup.erc20[0]
         data.gotchiverseIncome.push({
           txId: txGroup.txId,
