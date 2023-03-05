@@ -67,8 +67,10 @@ const ADDRESS_TO_CONTRACT = {
   '0x9216c31d8146bcb3ea5a9162dc1702e8aedca355': 'GotchiTiles',
   '0x75c8866f47293636f1c32ecbcd9168857dbefc56': 'GotchiAirdrops', // Claimable airdrops: H1 bg, Drop tickets
   '0x6c723cac1e35fe29a175b287ae242d424c52c1ce': 'GotchiRaffles', // Raffle submission/claiming
+  '0x4fdfc1b53fd1d80d969c984ba7a8ce4c7baad442': 'GotchiForge',
   '0xa44c8e0ecaefe668947154ee2b803bd4e6310efe': 'GotchiGBM_Land', // Land Auction 1 (2021-10) and 2 (2021-12)
   '0x1d86852b823775267ee60d98cbcda9e8d5c2faa7': 'GotchiGBM_2021-07', // Wearables GBM 1
+  '0xd5543237c656f25eea69f1e247b8fa59ba353306': 'GotchiGBM_2023-02', // Forge GBM 1
   '0xa4e3513c98b30d4d7cc578d2c328bd550725d1d0': 'FAKEGotchis',
   '0x2c1a288353e136b9e4b467aadb307133fffeab25': 'VersePayout', // Alchemica payouts from Gotchiverse Apr 2022
   '0xa0f32863ac0e82d36df959a95fedb661c1d32a6f': 'VersePayout2', // Alchemica payouts from Gotchiverse Apr 2022
@@ -102,7 +104,8 @@ const CONTRACT_TO_ADDRESS = Object.fromEntries(Object.entries(ADDRESS_TO_CONTRAC
 
 const GBM_CONTRACT_ADDRESSES = [
   CONTRACT_TO_ADDRESS['GotchiGBM_Land'],
-  CONTRACT_TO_ADDRESS['GotchiGBM_2021-07']
+  CONTRACT_TO_ADDRESS['GotchiGBM_2021-07'],
+  CONTRACT_TO_ADDRESS['GotchiGBM_2023-02']
 ]
 
 const CONTRACT_ERC721 = {
@@ -296,6 +299,16 @@ const CONTRACT_ERC1155 = {
     '6': {
       asset: 'GV-TIL-6',
       label: 'LE Cyan Grass'
+    }
+  },
+  '0x4fdfc1b53fd1d80d969c984ba7a8ce4c7baad442': {
+    '355': {
+      asset: 'AG-SCH-355',
+      label: 'Safety Glasses Schematic'
+    },
+    '357': {
+      asset: 'AG-SCH-357',
+      label: 'Nail Gun Schematic'
     }
   }
 }
@@ -1613,7 +1626,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
         //  sent Aavegotchi ERC1155
         txGroup.erc1155.length === 1 &&
         txGroup.erc1155[0].fromAddress === address &&
-        [CONTRACT_TO_ADDRESS['Aavegotchi'], CONTRACT_TO_ADDRESS['GotchiStaking']].includes(txGroup.erc1155[0].tokenContractAddress) &&
+        [CONTRACT_TO_ADDRESS['Aavegotchi'], CONTRACT_TO_ADDRESS['GotchiStaking'], CONTRACT_TO_ADDRESS['GotchiForge']].includes(txGroup.erc1155[0].tokenContractAddress) &&
         //  no other transfers
         !txGroup.internal.length &&
         !txGroup.erc721.length
@@ -1687,7 +1700,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
       // GBM refunds
       } else if (txGroup.erc20.length === 1 && !txGroup.erc1155.length && !txGroup.erc721.length &&
         txGroup.erc20[0].toAddress === address &&
-        [CONTRACT_TO_ADDRESS['GotchiGBM_Land']].includes(txGroup.erc20[0].fromAddress) &&
+        GBM_CONTRACT_ADDRESSES.includes(txGroup.erc20[0].fromAddress) &&
         txGroup.erc20[0].token === 'GHST'
       ) {
         const erc20tx = txGroup.erc20[0]
