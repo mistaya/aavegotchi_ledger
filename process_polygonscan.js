@@ -61,6 +61,7 @@ const TOKEN_TO_ADDRESS = Object.fromEntries(Object.entries(ADDRESS_TO_TOKEN).map
 
 const ADDRESS_TO_CONTRACT = {
   '0x86935f11c86623dec8a25696e1c19a8659cbf95d': 'Aavegotchi', // Portals, Gotchi, Wearables
+  '0x58de9aabcaeec0f69883c94318810ad79cc6a44f': 'AavegotchiWearables', // Wearables Diamond (since ~Dec 2022?)
   '0xa02d547512bb90002807499f05495fe9c4c3943f': 'GotchiStaking', // Staking, Raffle tickets
   '0x1d0360bac7299c86ec8e99d0c1c9a95fefaf2a11': 'GotchiRealm', // Parcels
   '0x19f870bd94a34b3adaa9caa439d333da18d6812a': 'GotchiInstallations',
@@ -70,7 +71,7 @@ const ADDRESS_TO_CONTRACT = {
   '0x4fdfc1b53fd1d80d969c984ba7a8ce4c7baad442': 'GotchiForge',
   '0xa44c8e0ecaefe668947154ee2b803bd4e6310efe': 'GotchiGBM_Land', // Land Auction 1 (2021-10) and 2 (2021-12)
   '0x1d86852b823775267ee60d98cbcda9e8d5c2faa7': 'GotchiGBM_2021-07', // Wearables GBM 1
-  '0xd5543237c656f25eea69f1e247b8fa59ba353306': 'GotchiGBM_2023-02', // Forge GBM 1
+  '0xd5543237c656f25eea69f1e247b8fa59ba353306': 'GotchiGBM_2023-02', // Forge GBM 1 and ongoing open Auctions
   '0xa4e3513c98b30d4d7cc578d2c328bd550725d1d0': 'FAKEGotchis',
   '0x2c1a288353e136b9e4b467aadb307133fffeab25': 'VersePayout', // Alchemica payouts from Gotchiverse Apr 2022
   '0xa0f32863ac0e82d36df959a95fedb661c1d32a6f': 'VersePayout2', // Alchemica payouts from Gotchiverse Apr 2022
@@ -97,7 +98,8 @@ const ADDRESS_TO_CONTRACT = {
   '0x875e8bbb88ff6361cd20032ee0b1f5136f928cc2': 'Scam_Token_MATICART6',
   '0x2ac2eb99a696cee368699eb4ad7217f8a706b905': 'Scam_Token_MATICART7',
   '0x612ee4bfd2ee2eaa7ef44120543c78ab4bd16635': 'Scam_Token_MATICART8',
-  '0x33d3a5c1e523b0aee0b6d9ec22f520f9f99a1738': 'Scam_Token_999USDT_wincoin'
+  '0x33d3a5c1e523b0aee0b6d9ec22f520f9f99a1738': 'Scam_Token_999USDT_wincoin',
+  '0xbde5cb50dcc58e169f918fce1886fb971949db3b': 'Scam_Token_999GHST'
 }
 
 const CONTRACT_TO_ADDRESS = Object.fromEntries(Object.entries(ADDRESS_TO_CONTRACT).map(([id, value]) => [value, id]))
@@ -115,6 +117,9 @@ const CONTRACT_ERC721 = {
 
 const CONTRACT_ERC1155 = {
   '0x86935f11c86623dec8a25696e1c19a8659cbf95d': {
+    // wearables will be populated later
+  },
+  '0x58de9aabcaeec0f69883c94318810ad79cc6a44f': {
     // wearables will be populated later
   },
   '0xa02d547512bb90002807499f05495fe9c4c3943f': {
@@ -177,6 +182,11 @@ const CONTRACT_ERC1155 = {
       asset: 'GV-ALT-5',
       label: 'Aaltaar L5',
       upgradesTo: '15'
+    },
+    '15': {
+      asset: 'GV-ALT-6',
+      label: 'Aaltaar L6',
+      upgradesTo: '16'
     },
     '65': {
       asset: 'GV-HRV-FOMO-1',
@@ -253,6 +263,11 @@ const CONTRACT_ERC1155 = {
       label: 'FOMO Reservoir L5',
       upgradesTo: '106'
     },
+    '106': {
+      asset: 'GV-RES-FOMO-6',
+      label: 'FOMO Reservoir L6',
+      upgradesTo: '107'
+    },
     '119': {
       asset: 'GV-RES-KEK-1',
       label: 'KEK Reservoir L1',
@@ -321,6 +336,10 @@ const importWearables = async function () {
       asset: `AG-WEAR-${wearable.id}`,
       label: wearable.name
     }
+    CONTRACT_ERC1155['0x58de9aabcaeec0f69883c94318810ad79cc6a44f'][`${wearable.id}`] = {
+      asset: `AG-WEAR-${wearable.id}`,
+      label: wearable.name
+    }
   }
 }
 
@@ -342,12 +361,22 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
   await importWearables()
 
   const erc1155Prices = await readJsonFile(ERC1155_PRICES_FILENAME)
+  const AavegotchiContractAddress = CONTRACT_TO_ADDRESS['Aavegotchi']
+  const AavegotchiWearablesContractAddress = CONTRACT_TO_ADDRESS['AavegotchiWearables']
   const findErc1155Price = function(tokenAddress, tokenId, txDate) {
     const date = txDate.substring(0, txDate.indexOf(' ')) // just want the 'YYYY-MM-DD', assume UTC
     // console.log(`Look up ERC1155 price for ${tokenAddress} ${tokenId} at ${date}`)
-    const price = erc1155Prices[tokenAddress]?.[tokenId]?.[date] || null
+    let price = erc1155Prices[tokenAddress]?.[tokenId]?.[date] || null
     if (!price) {
-      console.warn(`Couldn't find ERC1155 price for ${tokenAddress} ${tokenId} at ${date}`)
+      // Special case: wearables were originally under the main Aavegotchi token address,
+      // but in late 2022/2023 changed to the Wearable Diamond address.
+      if (tokenAddress === AavegotchiWearablesContractAddress) {
+        // Prices are stored under the AavegotchiContractAddress
+        price = erc1155Prices[AavegotchiContractAddress]?.[tokenId]?.[date] || null
+      }
+      if (!price) {
+        console.warn(`Couldn't find ERC1155 price for ${tokenAddress} ${tokenId} at ${date}`)
+      }
     }
     return price
   }
@@ -905,7 +934,8 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
           tx.toAddress === CONTRACT_TO_ADDRESS['GotchiRealm'] && [
             'Channel Alchemica', // we captured the version of this with erc20 income earlier; no-income happens when channeling a borrowed gotchi
             'Start Surveying',
-            'Set Parcels Access Rights'
+            'Set Parcels Access Rights',
+            'Set Parcels Access Right With Whitelists'
           ].includes(tx.method)
           ||
           tx.toAddress === CONTRACT_TO_ADDRESS['GotchiInstallations'] && [
@@ -1715,6 +1745,60 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
         }
         data.gbmRefunds.push(refund)
         console.log(label)
+
+      // GBM claims by the seller (main account is buyer)
+      } else if (
+        // an NFT has been sent from the GBM contract to the main address
+        (txGroup.erc721.length && txGroup.erc721[0].toAddress === address && txGroup.erc721[0].fromAddress === CONTRACT_TO_ADDRESS['GotchiGBM_2023-02']) ||
+        (txGroup.erc1155.length && txGroup.erc1155[0].toAddress === address && txGroup.erc1155[0].fromAddress === CONTRACT_TO_ADDRESS['GotchiGBM_2023-02'])
+      ) {
+
+        console.group(`Third-party claiming won GBM items`)
+
+        for (const erc721tx of txGroup.erc721) {
+          const assetId = erc721tx.assetId
+          const assetLabel = erc721tx.assetLabel
+          const label = `Claim GBM item: 1 ${assetLabel} (${assetId})`
+          if (erc721tx.toAddress !== address) {
+            console.error(`Unexpected destination of GBM item in tx ${erc1155tx.txId}`)
+          }
+          data.gbmClaims.push({
+            txId: erc1155tx.txId,
+            date: erc1155tx.date,
+            tokenId: erc721tx.tokenId,
+            asset: assetId,
+            assetLabel,
+            assetContractAddress: erc721tx.tokenContractAddress,
+            amount: '1',
+            maticValueFee: '0',
+            label
+          })
+          console.log(label)
+        }
+
+        for (const erc1155tx of txGroup.erc1155) {
+          const assetId = erc1155tx.assetId
+          const assetLabel = erc1155tx.assetLabel
+          const amount = erc1155tx.tokenValue
+          const label = `Claim GBM item: ${amount} ${assetLabel} (${assetId})`
+          if (erc1155tx.toAddress !== address) {
+            console.error(`Unexpected destination of GBM item in tx ${erc1155tx.txId}`)
+          }
+          data.gbmClaims.push({
+            txId: erc1155tx.txId,
+            date: erc1155tx.date,
+            tokenId: erc1155tx.tokenId,
+            asset: assetId,
+            assetLabel,
+            assetContractAddress: erc1155tx.tokenContractAddress,
+            amount,
+            maticValueFee: '0',
+            label
+          })
+          console.log(label)
+        }
+
+        console.groupEnd()
 
       // Scam token airdrops (ERC20)
       } else if (
