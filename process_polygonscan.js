@@ -877,27 +877,46 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
           console.log(`Upgrade installation, cost ${label} (lookup land and installation later...)`)
         }
       } else if (isCallingAavegotchi && ['Agree Gotchi Lending'].includes(tx.method)) {
-        // The account is borrowing a gotchi, spending GHST fee and receiving a gotchi
+        // The account is borrowing a gotchi, spending GHST fee (optionally!) and receiving a gotchi
         if (
-          txGroup.erc20.length !== 1 || txGroup.erc721.length !== 1 || txGroup.erc1155.length || txGroup.internal.length ||
-          txGroup.erc20[0].token !== 'GHST' ||
-          txGroup.erc20[0].fromAddress !== address ||
-          txGroup.erc721[0].toAddress !== address
+          txGroup.erc1155.length || txGroup.internal.length ||
+          txGroup.erc721.length !== 1 || txGroup.erc721[0].toAddress !== address ||
+          (
+            // optional GHST fee, but nothing else
+            txGroup.erc20.length > 0 &&
+            (
+              txGroup.erc20.length > 1 ||
+              txGroup.erc20[0].token !== 'GHST' ||
+              txGroup.erc20[0].fromAddress !== address
+            )
+          )
         ) {
           console.error(`Unexpected 'Agree Gotchi Lending' txGroup contents`, txGroup)
         } else {
           const erc20tx = txGroup.erc20[0]
-          const label = `Borrow Aavegotchi, paying ${erc20tx.tokenValue} GHST fee`
-          const event = {
-            txId: tx.txId,
-            date: tx.date,
-            asset: erc20tx.token,
-            assetContractAddress: erc20tx.tokenContractAddress,
-            amount: erc20tx.tokenValue,
-            maticValueFee: tx.maticValueFee,
-            label
+          const label = `Borrow Aavegotchi, paying ${erc20tx ? `${erc20tx.tokenValue} GHST` : 'no'} fee`
+          // if there is a fee, record it
+          if (erc20tx) {
+            const event = {
+              txId: tx.txId,
+              date: tx.date,
+              asset: erc20tx.token,
+              assetContractAddress: erc20tx.tokenContractAddress,
+              amount: erc20tx.tokenValue,
+              maticValueFee: tx.maticValueFee,
+              label
+            }
+            data.gotchiLendingBorrowingFees.push(event)
+          } else {
+            // No fee: record game action for the transaction fee
+            const action = {
+              txId: tx.txId,
+              date: tx.date,
+              maticValueFee: tx.maticValueFee,
+              label
+            }
+            data.gameActions.push(action)
           }
-          data.gotchiLendingBorrowingFees.push(event)
           console.log(label)
         }
       } else if (isCallingAavegotchi && ['Claim Aavegotchi'].includes(tx.method)) {
