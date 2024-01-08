@@ -189,7 +189,8 @@ const ADDRESS_TO_CONTRACT = {
   '0x316d73824bc9c60f239d4c57082bcde4bfdf4f7a': 'Scam_Token_PositiveVibes_0x316d73824bc9c60f239d4c57082bcde4bfdf4f7a',
   '0x1fa335eb9162cb0a41a6c2cb8a9c050adf1f257d': 'Scam_Token_3000USDTAirdrop_0x1fa335eb9162cb0a41a6c2cb8a9c050adf1f257d',
   '0x1f0d0b8b300ca644377b3e6aeaff445cdd1bd8e1': 'Scam_Token_2000USDCVoucher_0x1f0d0b8b300ca644377b3e6aeaff445cdd1bd8e1',
-  '0x1348debd5f3004585594554c89f843ab27938484': 'Scam_Token__0x1348debd5f3004585594554c89f843ab27938484'
+  '0x1348debd5f3004585594554c89f843ab27938484': 'Scam_Token__0x1348debd5f3004585594554c89f843ab27938484',
+  '0xe9d7a7650a3611aa356f7cd80c262ef8626ee964': 'Scam_Token_5000USDC_0xe9d7a7650a3611aa356f7cd80c262ef8626ee964'
 }
 
 const CONTRACT_TO_ADDRESS = Object.fromEntries(Object.entries(ADDRESS_TO_CONTRACT).map(([id, value]) => [value, id]))
@@ -982,6 +983,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
           ||
           tx.toAddress === CONTRACT_TO_ADDRESS['GotchiRealm'] && [
             'Channel Alchemica', // we captured the version of this with erc20 income earlier; no-income happens when channeling a borrowed gotchi
+            'Claim Available Alchemica', // we captured the version of this with erc20 income earlier (hot wallet claims but no erc20 income to hot wallet since alchemica goes to escrow first)
             'Start Surveying',
             'Set Parcels Access Rights',
             'Set Parcels Access Right With Whitelists'
