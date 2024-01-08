@@ -2,6 +2,7 @@ const BigNumber = require('bignumber.js')
 const { readJsonFile, readCsvFile, writeJsonFile } = require('./fileUtils.js')
 const fetchTransaction = require('./fetchTransaction.js')
 const fetchTransactionEthers = require('./fetchTransactionEthers.js')
+const fetchTransactionReceiptEthers = require('./fetchTransactionReceiptEthers.js')
 const ethers = require('ethers')
 // Don't use exponential notation
 BigNumber.config({ EXPONENTIAL_AT: [-100, 100] })
@@ -27,6 +28,7 @@ const ADDRESS_TO_TOKEN = {
   '0x73958d46b7aa2bc94926d8a215fa560a5cdca3ea': 'wapGHST',
   '0x6e14790535c04b1a58592fbee6109d9bc57a51ad': 'VLT',
   '0xce899f26928a2b21c6a2fddd393ef37c61dba918': 'MOCA',
+  '0x162539172b53e9a93b7d98fb6c41682de558a320': 'GONE',
   '0xe4fb1bb8423417a460286b0ed44b64e104c5fae5': 'Scam_Token_Zepe',
   '0x81067076dcb7d3168ccf7036117b9d72051205e2': 'Scam_Token_DxDex',
   '0x4a1a24542644d77b34497de7f218d63cb4d36e0f': 'Scam_Token_YUI',
@@ -43,6 +45,9 @@ const ADDRESS_TO_TOKEN = {
   '0x14f2c84a58e065c846c5fdddade0d3548f97a517': 'Scam_Token_MATICSWAP',
   '0xf31cdb090d1d4b86a7af42b62dc5144be8e42906': 'Scam_Token_0Bets',
   '0x92face859e48c5d70510bf9bbc60a4b4c4fc8b98': 'Scam_Token_ERC20',
+  '0xf11191cc9567656586924795965cc371f2206f8a': 'Scam_Token_ERC202',
+  '0x2aad6b23c189b82e50d8c24c8c1c6058a3ef9960': 'Scam_Token_ERC203',
+  '0x24cb8f3a022fbd40aee3a9dc035889b309fa6177': 'Scam_Token_ERC204',
   '0x2f11137deec67b5adaf24b49381709b312a6dcf2': 'Scam_Token_$Aavegotchi_GHST',
   '0x650a15efcef2c0420d1242dec0c4e5975ccf842b': 'Scam_Token_goodgames',
   '0x5229cadb824fd5117f00e3614c138b62f2bd3156': 'Scam_Token_0x5229c',
@@ -55,7 +60,24 @@ const ADDRESS_TO_TOKEN = {
   '0xaf6b1a3067bb5245114225556e5b7a52cf002752': 'Scam_Token_0xaf6b1a',
   '0xcf68f02d7dd6a4642ae6a77f6a3676d0cbc834c9': 'Scam_Token_GGBoxs',
   '0x2e618eabe66818f4c6718c24f59c5694f0b2735a': 'Scam_Token_SIMP',
-  '0x68c929e7b8fb06c58494a369f6f088fff28f7c77': 'Scam_Token_0Betsio'
+  '0xe93ef372237c3184af3db173ef1881eec94b1021': 'Scam_Token_HEXPool',
+  '0x25c3f5ef0328eb71388b77da1c3ee458ec5c1ffb': 'Scam_Token_HEXPool2',
+  '0x49b6b6b01937828ccab01d0ef4abea0237d94b8a': 'Scam_Token_PNSTAKE',
+  '0x56a3edba6e17a22bd08f80ad426268bba6e4751e': 'Scam_Token_USDC_FAKE',
+  '0x34f18b7ad0b2d8850b13c716d20272af141e087b': 'Scam_Token_USD_FAKE',
+  '0xf96ccc3d690007abd3ce07349068cefbc210f1d5': 'Scam_Token_LRETH',
+  '0xdd5cd04c7edd7a12fa6d62f088d9b9df9678530d': 'Scam_Token_vanity-address',
+  '0x0000065a20d6689430601581a21f28014594f74e': 'Scam_Token_PUNKWL',
+  '0x17868e575a7c6a65460272c8ec74ac4ac89e385e': 'Scam_Token_LINKBonus',
+  '0x2efebacc71f0e281989acbb497b92d55c828777a': 'Scam_Token_LINKBonus2',
+  '0x0d0c2dd3b1b67f6052eab607e082517932334048': 'Scam_Token_SNXPool',
+  '0x8a73cf4a610f45144566e9c739b32e9a17ea75bb': 'Scam_Token_RareTrx',
+  '0x9b8cc6320f22325759b7d2ca5cd27347bb4ecd86': 'Scam_Token_pointless',
+  '0x46f29ee74ab63704cbf941530849e3c35ac7879f': 'Scam_Token_BTBSaga',
+  '0x114d232f8befea9fa2fb0a06dee069c856d61bfc': 'Scam_Token_SEXY',
+  '0xb27cea9e38eeb387d3b0672287ca304fbff00b7c': 'Scam_Token_LensRewards',
+  '0x68c929e7b8fb06c58494a369f6f088fff28f7c77': 'Scam_Token_0Betsio',
+  '0x68bd1a34f89ba7bb43b6b76355c0f27ed6311f38': 'Scam_Token_0Betsio2'
 }
 const TOKEN_TO_ADDRESS = Object.fromEntries(Object.entries(ADDRESS_TO_TOKEN).map(([id, value]) => [value, id]))
 
@@ -84,6 +106,8 @@ const ADDRESS_TO_CONTRACT = {
   '0xdef1c0ded9bec7f1a1670819833240f027b25eff': 'QuickSwap',
   '0x2953399124f0cbb46d2cbacd8a89cf0599974963': 'OpenSeaCollections',
   '0xdb46d1dc155634fbc732f92e853b10b288ad5a1d': 'LensProtocolProfiles',
+  '0xe7e7ead361f3aacd73a61a9bd6c10ca17f38e945': 'LensHandles',
+  '0x3ed229639287098fc739d2d35bd34b12fb938b3e': 'Scam_Token_LensAirdrop',
   '0x1bfa729883fd32f13873f6933bc68958251f611a': 'Scam_Token_LABUBL',
   '0x2953399124f0cbb46d2cbacd8a89cf0599974963': 'Scam_Token_OPENSTORE',
   '0xfd1dbd4114550a867ca46049c346b6cd452ec919': 'Scam_Token_Filomagia',
@@ -98,8 +122,74 @@ const ADDRESS_TO_CONTRACT = {
   '0x875e8bbb88ff6361cd20032ee0b1f5136f928cc2': 'Scam_Token_MATICART6',
   '0x2ac2eb99a696cee368699eb4ad7217f8a706b905': 'Scam_Token_MATICART7',
   '0x612ee4bfd2ee2eaa7ef44120543c78ab4bd16635': 'Scam_Token_MATICART8',
+  '0x947b5a3f7b8f288498347dc1cdfe35fd13b3afe8': 'Scam_Token_GOTCHI',
+  '0xb8cb14dc0dda33c28e2f77802452bf274da255ae': 'Scam_Token_Lidonft',
+  '0x745f3e1bedd8d9a167057a5e76543fbd32bd5e4b': 'Scam_Token_APETicket',
+  '0x1678199f515cf2df55e06e476671a04de2f3e76a': 'Scam_Token_APETicket2',
+  '0x4ef5d7352844e3dfc15393cabc02f79b646bc79c': 'Scam_Token_APETicket3',
+  '0x5c86ca98595ccac89d116ba4e7f4cee4eed9c01b': 'Scam_Token_APETicket4',
+  '0x9594d1065172f530d387c2017ab80a279512dbaf': 'Scam_Token_APETicket5',
+  '0xbf271df0ef916d1af7f52fc254fb34070dd02ef8': 'Scam_Token_Aaveairdrop',
+  '0xcca10993b72fc73a2f16911711e737000b4f08a7': 'Scam_Token_Aaveevent',
+  '0xbd8326b2f91cb8518b12e9c4852e12f27e98af01': 'Scam_Token_Ghostevent',
+  '0x09d4d65ee6c2ff347e6bfaf9e202fe66b7694dd1': 'Scam_Token_Dydxevent',
+  '0xa2926fe9d94a55defb6bec0921251e9a6d21684f': 'Scam_Token_Unievent',
+  '0x4d9f9224c6d7497541d8c7da9945a85f387be279': 'Scam_Token_Polyevent',
+  '0xede4fe9515b38ea23b8ef661a847271bae627429': 'Scam_Token_BitCase',
+  '0xeeffb0cd240da36f4af52d98b876ea8b20a6e73b': 'Scam_Token_BitCasefreespin',
+  '0x2ec8b98475b80d6b28d393876ac34ab58c5ca153': 'Scam_Token_Unievent',
   '0x33d3a5c1e523b0aee0b6d9ec22f520f9f99a1738': 'Scam_Token_999USDT_wincoin',
-  '0xbde5cb50dcc58e169f918fce1886fb971949db3b': 'Scam_Token_999GHST'
+  '0xbde5cb50dcc58e169f918fce1886fb971949db3b': 'Scam_Token_999GHST',
+  '0x9e761402c82710d7288fb398f63bbce0d9591ba3': 'Scam_Token_AVALANCENFTTICKETS_0x9e761402c82710d7288fb398f63bbce0d9591ba3',
+  '0xdfeec8048ab80220a3f6ec1370d589108d059cb1': 'Scam_Token_LedgerStaxGiveaway_0xdfeec8048ab80220a3f6ec1370d589108d059cb1',
+  '0x753216c373de224d74d30db1dc6bc2cd1d8b21db': 'Scam_Token_LedgerStaxGiveaway_0x753216c373de224d74d30db1dc6bc2cd1d8b21db',
+  '0x42ab609cb406453c6a942049dd7cbaf173036dc1': 'Scam_Token_dYdXExchangeEvent_0x42ab609cb406453c6a942049dd7cbaf173036dc1',
+  '0x0e1c2df28d2cfe303f45bb832c05de2924b732ad': 'Scam_Token_ERC1155TOKEN_0x0e1c2df28d2cfe303f45bb832c05de2924b732ad',
+  '0x7a388985c50708d9cc531e19bc53c641fc368c0c': 'Scam_Token_ARBITDROPINFOCOUPON_0x7a388985c50708d9cc531e19bc53c641fc368c0c',
+  '0x24aa8abd6d7df783d1e3efde9f24a1aa231485e6': 'Scam_Token_ERC1155TOKEN_0x24aa8abd6d7df783d1e3efde9f24a1aa231485e6',
+  '0xa16e90bc74752c836e1f45c7637dcc82f7ba6bd8': 'Scam_Token_LedgerStaxGiveaway_0xa16e90bc74752c836e1f45c7637dcc82f7ba6bd8',
+  '0x1f156a90622b50afad2808f1de753f7533114b57': 'Scam_Token_ERC1155TOKEN_0x1f156a90622b50afad2808f1de753f7533114b57',
+  '0x9fb53ad253824cc721ce8372881c7104588a25cc': 'Scam_Token_ARBITDROPINFOCOUPON_0x9fb53ad253824cc721ce8372881c7104588a25cc',
+  '0x3bf8fe0666f6041b038b3400e73b87748e3153e1': 'Scam_Token_5000USDC_0x3bf8fe0666f6041b038b3400e73b87748e3153e1',
+  '0x5cef6ae390ec62a303346d19fdc8150737821a3c': 'Scam_Token_ERC1155TOKEN_0x5cef6ae390ec62a303346d19fdc8150737821a3c',
+  '0xd1315bc9ee68eb16dc2974061507c3ee3dadf74c': 'Scam_Token_5000USDCVoucher_0xd1315bc9ee68eb16dc2974061507c3ee3dadf74c',
+  '0x4c7281f0a8a143a34ffa5844e584fe873474ac3c': 'Scam_Token_500ETHbyBase_0x4c7281f0a8a143a34ffa5844e584fe873474ac3c',
+  '0xd55a216eee3ad439544fbd541d86c9ac1a798cd4': 'Scam_Token_1300GHST_0xd55a216eee3ad439544fbd541d86c9ac1a798cd4',
+  '0x98b1f8a4f47038fdae7e38839463d58fd8a75757': 'Scam_Token_LENSAirdrop_0x98b1f8a4f47038fdae7e38839463d58fd8a75757',
+  '0x98b1f8a4f47038fdae7e38839463d58fd8a75757': 'Scam_Token_LENSAirdrop_0x98b1f8a4f47038fdae7e38839463d58fd8a75757',
+  '0xc46e36339ebd8bed48b1bdb6bd815e4b72103949': 'Scam_Token_ERC1155TOKEN_0xc46e36339ebd8bed48b1bdb6bd815e4b72103949',
+  '0xcf9aff2e6acee588befca3613054c0f41fa9a754': 'Scam_Token_LedgerStaxGiveaway_0xcf9aff2e6acee588befca3613054c0f41fa9a754',
+  '0x98b1f8a4f47038fdae7e38839463d58fd8a75757': 'Scam_Token_LENSAirdrop_0x98b1f8a4f47038fdae7e38839463d58fd8a75757',
+  '0x9bb426818b7a3aad46871015c0432a0173715491': 'Scam_Token_ERC1155TOKEN_0x9bb426818b7a3aad46871015c0432a0173715491',
+  '0x1738832e9cec165805c25912db97202767b4b379': 'Scam_Token_2500USDTbyETHERSCANxMETAWIN_0x1738832e9cec165805c25912db97202767b4b379',
+  '0x5b732552f048ff8fae3f5a1a1395e0a87c866d8f': 'Scam_Token_5000USDC_0x5b732552f048ff8fae3f5a1a1395e0a87c866d8f',
+  '0x5cf838ce9e15553ea5227a0e4418a30c0a7b78c9': 'Scam_Token_200MSHIB_0x5cf838ce9e15553ea5227a0e4418a30c0a7b78c9',
+  '0x236ae72401d43b426e271889a26fdf42ad1b82e5': 'Scam_Token_LENSAIRDROP_0x236ae72401d43b426e271889a26fdf42ad1b82e5',
+  '0x7eb18053877ad69711eda7d1fd9132b1f86d4ff2': 'Scam_Token_5000BUSD_0x7eb18053877ad69711eda7d1fd9132b1f86d4ff2',
+  '0x73daa08b84f47fc8f4b7532ab691554a1bcf10d8': 'Scam_Token_5000USDT_0x73daa08b84f47fc8f4b7532ab691554a1bcf10d8',
+  '0x84ae16bbccc752dcbc8f45bbef9ea7d932be09f3': 'Scam_Token_250COMP_0x84ae16bbccc752dcbc8f45bbef9ea7d932be09f3',
+  '0x6e6e0a5045ddec95fd53757dc96336881e3e4385': 'Scam_Token_100000BONE_0x6e6e0a5045ddec95fd53757dc96336881e3e4385',
+  '0xf7b9fa22ead801a096fb3fa0d303f688ec3bcafb': 'Scam_Token_ERC1155TOKEN_0xf7b9fa22ead801a096fb3fa0d303f688ec3bcafb',
+  '0xc8030e7a7884a232fe4c867429a6f0bdf23de57c': 'Scam_Token_2000USDC_0xc8030e7a7884a232fe4c867429a6f0bdf23de57c',
+  '0x616e23f4f816208e2b7bfbcf954f81660799e806': 'Scam_Token_700MSHIB_0x616e23f4f816208e2b7bfbcf954f81660799e806',
+  '0x0cbaeee7173b1d121a74f7da3d69467426bcafad': 'Scam_Token_5ETHbyBase_0x0cbaeee7173b1d121a74f7da3d69467426bcafad',
+  '0x8ce685c826b42ba00acc3aea5dc06d6cd0538487': 'Scam_Token_1000UNI_0x8ce685c826b42ba00acc3aea5dc06d6cd0538487',
+  '0xf56814c4c86c9030f75556448eda5d8d39a52e7e': 'Scam_Token_ERC1155TOKEN_0xf56814c4c86c9030f75556448eda5d8d39a52e7e',
+  '0x56b92dc3dd0522deb6d1025b6c884e80ad1339c0': 'Scam_Token_ERC1155TOKEN_0x56b92dc3dd0522deb6d1025b6c884e80ad1339c0',
+  '0xf66eba27a36631d14fde611e52bff661846507fc': 'Scam_Token_ERC1155TOKEN_0xf66eba27a36631d14fde611e52bff661846507fc',
+  '0xd0d33895db6e382971c680ff3357bfc2ab235f12': 'Scam_Token__0xd0d33895db6e382971c680ff3357bfc2ab235f12',
+  '0xff3cf709c1e602b4abd8f3eec73f87a85ae0f8e7': 'Scam_Token_ERC1155TOKEN_0xff3cf709c1e602b4abd8f3eec73f87a85ae0f8e7',
+  '0x21990b8d596d4c3fb2c10309258ef63cce75e576': 'Scam_Token__0x21990b8d596d4c3fb2c10309258ef63cce75e576',
+  '0x60175a9a7d72fcb1e0b5ada305262519d1de2ea2': 'Scam_Token_1000USDTAirdrop_0x60175a9a7d72fcb1e0b5ada305262519d1de2ea2',
+  '0xf9e5501f1c0404565d160234b833a6a494286a03': 'Scam_Token_eigenlayer_0xf9e5501f1c0404565d160234b833a6a494286a03',
+  '0xf1515d090de782c4ae0fbc59930a7511edb20efb': 'Scam_Token__0xf1515d090de782c4ae0fbc59930a7511edb20efb',
+  '0xe7d14d68ca89a78ab7e7cac741a496059914d7d5': 'Scam_Token_1000USDCAirdrop_0xe7d14d68ca89a78ab7e7cac741a496059914d7d5',
+  '0x8cddead7a8ae51e93510d49785bed3284f37bc55': 'Scam_Token_2000USDTVoucher_0x8cddead7a8ae51e93510d49785bed3284f37bc55',
+  '0x70e6e7bd23b58ae47df51f67ba2b3e7b5f2c04c6': 'Scam_Token__0x70e6e7bd23b58ae47df51f67ba2b3e7b5f2c04c6',
+  '0x316d73824bc9c60f239d4c57082bcde4bfdf4f7a': 'Scam_Token_PositiveVibes_0x316d73824bc9c60f239d4c57082bcde4bfdf4f7a',
+  '0x1fa335eb9162cb0a41a6c2cb8a9c050adf1f257d': 'Scam_Token_3000USDTAirdrop_0x1fa335eb9162cb0a41a6c2cb8a9c050adf1f257d',
+  '0x1f0d0b8b300ca644377b3e6aeaff445cdd1bd8e1': 'Scam_Token_2000USDCVoucher_0x1f0d0b8b300ca644377b3e6aeaff445cdd1bd8e1',
+  '0x1348debd5f3004585594554c89f843ab27938484': 'Scam_Token__0x1348debd5f3004585594554c89f843ab27938484'
 }
 
 const CONTRACT_TO_ADDRESS = Object.fromEntries(Object.entries(ADDRESS_TO_CONTRACT).map(([id, value]) => [value, id]))
@@ -347,12 +437,12 @@ const getInstallationAsset = function (installationId) {
   return CONTRACT_ERC1155[CONTRACT_TO_ADDRESS['GotchiInstallations']][installationId]
 }
 
-module.exports.processExports = async (address, fileExport, fileExportInternal, fileExportERC20, fileExportERC721, fileExportERC1155, filenameOut) => {
-  if (!address || !fileExport || !fileExportInternal || !fileExportERC20 || !fileExportERC721 || !fileExportERC1155 || !filenameOut) {
+module.exports.processExports = async (address, fileExport, fileExportInternal, fileExportERC20, fileExportERC721and1155, filenameOut) => {
+  if (!address || !fileExport || !fileExportInternal || !fileExportERC20 || !fileExportERC721and1155 || !filenameOut) {
     console.error('Please provide all parameters')
     return
   }
-  if ([fileExport, fileExportInternal, fileExportERC20, fileExportERC721, fileExportERC1155].includes(filenameOut)) {
+  if ([fileExport, fileExportInternal, fileExportERC20, fileExportERC721and1155].includes(filenameOut)) {
     console.error('Please provide a different output filename')
     return
   }
@@ -475,22 +565,8 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
     }
   }
 
-  // Older format:
-  // "Txhash","UnixTimestamp","DateTime","From","To","Value","ContractAddress","TokenName","TokenSymbol"
-  const erc20TxColumns1 = [
-    'txId',
-    'timestamp',
-    'date',
-    'fromAddress',
-    'toAddress',
-    'tokenValue',
-    'tokenContractAddress',
-    'tokenName',
-    'tokenSymbol'
-  ]
-
   // "Txhash","Blockno","UnixTimestamp","DateTime","From","To","TokenValue","USDValueDayOfTx","ContractAddress","TokenName","TokenSymbol"
-  const erc20TxColumns2 = [
+  const erc20TxColumns = [
     'txId',
     'block',
     'timestamp',
@@ -505,11 +581,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
   ]
 
   const findErc20TxColumns = function (fileContents) {
-    const firstLine = fileContents.substring(0, fileContents.indexOf('\n'))
-    if (firstLine.includes('Blockno')) {
-      return erc20TxColumns2
-    }
-    return erc20TxColumns1
+    return erc20TxColumns
   }
 
   const erc20Txs = await readCsvFile(fileExportERC20, findErc20TxColumns)
@@ -530,22 +602,8 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
     }
   }
 
-  // Older format
-  // "Txhash","UnixTimestamp","DateTime","From","To","ContractAddress","TokenId","TokenName","TokenSymbol"
-  const erc721TxColumns1 = [
-    'txId',
-    'timestamp',
-    'date',
-    'fromAddress',
-    'toAddress',
-    'tokenContractAddress',
-    'tokenId',
-    'tokenName',
-    'tokenSymbol'
-  ]
-
-  // "Txhash","Blockno","UnixTimestamp","DateTime","From","To","ContractAddress","TokenId","TokenName","TokenSymbol"
-  const erc721TxColumns2 = [
+  // "Txhash","Blockno","UnixTimestamp","DateTime (UTC)","From","To","ContractAddress","TokenName","TokenSymbol","Token ID","Type","Quantity"
+  const erc721and1155TxColumns = [
     'txId',
     'block',
     'timestamp',
@@ -553,21 +611,21 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
     'fromAddress',
     'toAddress',
     'tokenContractAddress',
-    'tokenId',
     'tokenName',
-    'tokenSymbol'
+    'tokenSymbol',
+    'tokenId',
+    'type',
+    'quantity'
   ]
 
-  const findErc721TxColumns = function (fileContents) {
-    const firstLine = fileContents.substring(0, fileContents.indexOf('\n'))
-    if (firstLine.includes('Blockno')) {
-      return erc721TxColumns2
-    }
-    return erc721TxColumns1
+  const findErc721and1155TxColumns = function (fileContents) {
+    return erc721and1155TxColumns
   }
 
-  const erc721Txs = await readCsvFile(fileExportERC721, findErc721TxColumns)
-  for (const tx of erc721Txs) {
+  // first look at ERC721
+  const erc721and1155Txs = await readCsvFile(fileExportERC721and1155, findErc721and1155TxColumns)
+  for (const tx of erc721and1155Txs) {
+    if (tx.type !== "721") { continue }
     initTransaction(tx.txId)
     const tokenContract = ADDRESS_TO_CONTRACT[tx.tokenContractAddress] || ''
     if (!tokenContract) {
@@ -593,50 +651,16 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
     }
   }
 
-  // Older format
-  // "Txhash","UnixTimestamp","DateTime","From","To","ContractAddress","TokenId", [tokenValue is missing in headers but present in rows!],"TokenName","TokenSymbol"
-  const erc1155TxColumns1 = [
-    'txId',
-    'timestamp',
-    'date',
-    'fromAddress',
-    'toAddress',
-    'tokenContractAddress',
-    'tokenId',
-    'tokenValue',
-    'tokenName',
-    'tokenSymbol'
-  ]
-
-  // "Txhash","Blockno","UnixTimestamp","DateTime","From","To","ContractAddress","TokenId", [tokenValue is missing in headers but present in rows!], "TokenName","TokenSymbol"
-  const erc1155TxColumns2 = [
-    'txId',
-    'block',
-    'timestamp',
-    'date',
-    'fromAddress',
-    'toAddress',
-    'tokenContractAddress',
-    'tokenId',
-    'tokenValue',
-    'tokenName',
-    'tokenSymbol'
-  ]
-
-  const findErc1155TxColumns = function (fileContents) {
-    const firstLine = fileContents.substring(0, fileContents.indexOf('\n'))
-    if (firstLine.includes('Blockno')) {
-      return erc1155TxColumns2
-    }
-    return erc1155TxColumns1
-  }
-
-  const erc1155Txs = await readCsvFile(fileExportERC1155, findErc1155TxColumns)
-  for (const tx of erc1155Txs) {
+  // then look at ERC1155
+  const erc155ScamEntries = []
+  for (const tx of erc721and1155Txs) {
+    if (tx.type !== "1155") { continue }
     initTransaction(tx.txId)
     const tokenContract = ADDRESS_TO_CONTRACT[tx.tokenContractAddress] || ''
     if (!tokenContract) {
-      console.log(`Unknown ERC1155 contract: ${tx.tokenContractAddress}`)
+      console.log(`Unknown ERC1155 contract: ${tx.tokenContractAddress} (${tx.tokenName})`)
+      const simplifiedName = tx.tokenName.replaceAll(/\W/g, "")
+      erc155ScamEntries.push(`'${tx.tokenContractAddress}': 'Scam_Token_${simplifiedName}_${tx.tokenContractAddress}'`)
     }
     const tokenDetails = CONTRACT_ERC1155[tx.tokenContractAddress]?.[tx.tokenId] || null
     if (!tokenDetails && !(tokenContract && tokenContract.startsWith('Scam_'))) {
@@ -650,12 +674,16 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
       tokenContractAddress: tx.tokenContractAddress,
       tokenContract,
       tokenId: tx.tokenId,
-      tokenValue: cleanExportedNumber(tx.tokenValue),
+      tokenValue: cleanExportedNumber(tx.quantity),
       assetId: tokenDetails?.asset || '',
       assetLabel: tokenDetails?.label || '',
       tokenName: tx.tokenName,
       tokenSymbolFromPolygonscan: tx.tokenSymbol
     })
+  }
+  if (erc155ScamEntries.length) {
+    console.log('All unknown ERC1155s:')
+    console.log(erc155ScamEntries.join(",\n"))
   }
 
   // Inspect and categorise transactions
@@ -683,6 +711,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
     raffleSubmissions: [],
     raffleWins: [],
     scamAirdrops: [],
+    scamTransfers: [],
     gotchiTransfersOut: [],
     gotchiTransfersIn: [],
     gotchiverseIncome: [],
@@ -944,6 +973,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
         console.log(tx.method + ' with income')
       } else if (
           isCallingAavegotchi && ['Open Portals', 'Interact', 'Set Aavegotchi Name', 'Equip Wearables',
+            'Batch Drop Claim XP Drop',
             'Spend Skill Points', 'Set Pet Operator For All', 'Cancel ERC721Listing', 'Cancel ERC1155Listing',
             'Create Whitelist', 'Update Whitelist', 'Remove Addresses From Whitelist',
             'Add Gotchi Lending', 'Cancel Gotchi Lending By Token',
@@ -1819,6 +1849,28 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
 
         console.groupEnd()
 
+
+      // Scam token zero-value transfers (ERC20)
+      } else if (
+        txGroup.erc20.length === 1 &&
+        txGroup.erc20[0].fromAddress === address &&
+        txGroup.erc20[0].tokenValue === '0' &&
+        !txGroup.internal.length &&
+        !txGroup.erc721.length &&
+        !txGroup.erc1155.length
+      ) {
+        const erc20tx = txGroup.erc20[0]
+        const asset = erc20tx.token
+        const label = `Scam token zero-value transfer: ${asset}`
+        const transfer = {
+          txId: erc20tx.txId,
+          date: erc20tx.date,
+          label
+        }
+        data.scamTransfers.push(transfer)
+        console.log(label)
+
+
       // Scam token airdrops (ERC20)
       } else if (
         txGroup.erc20.length === 1 &&
@@ -2502,6 +2554,106 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
       }
     }
   }
+
+  // Look for 1inch trades that were executed by the aggregation router,
+  // which are ERC20 transfers with one token in and a different token out (or one MATIC internal transfer)
+  const nowProcessed = []
+  const is1inchOrderFilledLog = function (log) {
+    return log && [CONTRACT_TO_ADDRESS['1inch3']].includes(log.address.toLowerCase())
+  }
+  for (const txGroup of data.unprocessed) {
+    if (
+      !txGroup.main.length &&
+      !txGroup.erc721.length &&
+      !txGroup.erc1155.length &&
+      (
+        (!txGroup.internal.length && txGroup.erc20.length === 2) ||
+        (txGroup.internal.length === 1 && txGroup.erc20.length === 1)
+      )
+    ) {
+      // extract acquired and disposed asset details from erc20/internal transfers to/from the target address
+      let acquiredAsset = null
+      let disposedAsset = null
+      let date = txGroup.erc20[0].date
+      if (txGroup.internal.length) {
+        // 1 matic transfer, 1 erc20 transfer
+        if (
+          txGroup.internal[0].toAddress === address &&
+          txGroup.erc20[0].fromAddress === address
+        ) {
+          // received MATIC, disposed ERC20
+          acquiredAsset = {
+            asset: 'MATIC',
+            amount: txGroup.internal[0].maticValueIn
+          }
+          disposedAsset = {
+            asset: txGroup.erc20[0].token,
+            assetContractAddress: txGroup.erc20[0].tokenContractAddress,
+            amount: txGroup.erc20[0].tokenValue
+          }
+        } else {
+          // TODO could add support for selling MATIC for ERC20, but don't have an example transaction for it yet
+          // unknown transfer pattern, leave it unprocessed
+          continue
+        }
+      } else {
+        // 2 erc20 transfers
+        const txsToAddress = txGroup.erc20.filter(tx => tx.toAddress === address)
+        const txsFromAddress = txGroup.erc20.filter(tx => tx.fromAddress === address)
+        if (
+          txsToAddress.length === 1 &&
+          txsFromAddress.length === 1 &&
+          txsToAddress[0].token !== txsFromAddress[0].token
+        ) {
+          const tokenSold = txsFromAddress[0]
+          const tokenBought = txsToAddress[0]
+          acquiredAsset = {
+            asset: tokenBought.token,
+            assetContractAddress: tokenBought.tokenContractAddress,
+            amount: tokenBought.tokenValue
+          }
+          disposedAsset = {
+            asset: tokenSold.token,
+            assetContractAddress: tokenSold.tokenContractAddress,
+            amount: tokenSold.tokenValue
+          }
+        } else {
+          // unknown transfer pattern, leave it unprocessed
+          continue
+        }
+      }
+      if (acquiredAsset && disposedAsset) {
+        // console.log(`unprocessed likely trade of ${disposedAsset.amount} ${disposedAsset.asset} to ${acquiredAsset.amount} ${acquiredAsset.asset}`, txGroup)
+        const tx = await fetchTransactionReceiptEthers(provider, txGroup.txId)
+        // console.log('Fetched tx receipt', tx)
+        // Transaction receipt event logs begin with an OrderFilled for 1inch contract
+        // Or sometimes the first log may be an approval, so also look at the second log
+        if (is1inchOrderFilledLog(tx.logs[0]) || is1inchOrderFilledLog(tx.logs[1])) {
+          const soldLabel = `${disposedAsset.amount} ${disposedAsset.asset || disposedAsset.assetContractAddress}`
+          const boughtLabel = `${acquiredAsset.amount} ${acquiredAsset.asset || acquiredAsset.assetContractAddress}`
+          const label = `1inch gasless trade: ${soldLabel} -> ${boughtLabel} (${date})`
+          console.log(label)
+          // construct trade record, and remove from unprocessed
+          nowProcessed.push(txGroup)
+          const trade = ({
+            txId: txGroup.txId,
+            date,
+            label,
+            acquired: [acquiredAsset],
+            disposed: [disposedAsset],
+            fees: []
+          })
+          data.trades.push(trade)
+        }
+      }
+    }
+  }
+  if (nowProcessed.length) {
+    data.unprocessed = data.unprocessed.filter(item => !nowProcessed.includes(item))
+  }
+
+
+  console.log(`After processing gasless trades, we now have ${Object.keys(allTransactions).length} transactions: found for ${Object.entries(data).map(([id, list]) => id === 'address' ? list : `${list.length} ${id}`).join(', ')}`)
 
   // Finished, export result
   await writeJsonFile(filenameOut, { data, allTransactions })
