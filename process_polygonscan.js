@@ -17,7 +17,8 @@ const ADDRESS_TO_TOKEN = {
   '0x42e5e06ef5b90fe15f853f59299fc96259209c5c': 'KEK',
   '0x3801c3b3b5c98f88a9c9005966aa96aa440b9afc': 'GLTR',
   '0xc2132d05d31c914a87c6611c10748aeb04b58e8f': 'USDT',
-  '0x2791bca1f2de4661ed88a30c99a7a9449aa84174': 'USDC',
+  '0x2791bca1f2de4661ed88a30c99a7a9449aa84174': 'USDC', // original version, polygonscan now says USDC.e PoS
+  '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359': 'USDC', // newer version (official Circle)
   '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063': 'DAI',
   '0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270': 'WMATIC',
   '0x1a13f4ca1d028320a707d99520abfefca3998b7f': 'amUSDC',
@@ -77,7 +78,14 @@ const ADDRESS_TO_TOKEN = {
   '0x114d232f8befea9fa2fb0a06dee069c856d61bfc': 'Scam_Token_SEXY',
   '0xb27cea9e38eeb387d3b0672287ca304fbff00b7c': 'Scam_Token_LensRewards',
   '0x68c929e7b8fb06c58494a369f6f088fff28f7c77': 'Scam_Token_0Betsio',
-  '0x68bd1a34f89ba7bb43b6b76355c0f27ed6311f38': 'Scam_Token_0Betsio2'
+  '0x68bd1a34f89ba7bb43b6b76355c0f27ed6311f38': 'Scam_Token_0Betsio2',
+  '0x523e309bcd48a58a7ffdb16edf357c1b08e5b847': 'Scam_Token_JTO',
+  '0xac8a3329fae15f0a39e33ecbd5f6f64d29d70121': 'Scam_Token_USDC_FAKE2',
+  '0x247833686b12791f258128788ce6d632796b342e': 'Scam_Token_mog',
+  '0x9355e47e971cbc462e297a81175d2e7dbbd5c1a3': 'Scam_Token_UNI',
+  '0x382586651f043cbdec7bb586e367d77b26d7d149': 'Scam_Token_WGC',
+  '0x9e99acced32e848388c52c8d771af32c42501a12': 'Scam_Token_zksync',
+  '0x1ef250b4a02505cfb4fba4d1ce1bb7e411851739': 'Scam_Token_kuroro'
 }
 const TOKEN_TO_ADDRESS = Object.fromEntries(Object.entries(ADDRESS_TO_TOKEN).map(([id, value]) => [value, id]))
 
@@ -190,7 +198,11 @@ const ADDRESS_TO_CONTRACT = {
   '0x1fa335eb9162cb0a41a6c2cb8a9c050adf1f257d': 'Scam_Token_3000USDTAirdrop_0x1fa335eb9162cb0a41a6c2cb8a9c050adf1f257d',
   '0x1f0d0b8b300ca644377b3e6aeaff445cdd1bd8e1': 'Scam_Token_2000USDCVoucher_0x1f0d0b8b300ca644377b3e6aeaff445cdd1bd8e1',
   '0x1348debd5f3004585594554c89f843ab27938484': 'Scam_Token__0x1348debd5f3004585594554c89f843ab27938484',
-  '0xe9d7a7650a3611aa356f7cd80c262ef8626ee964': 'Scam_Token_5000USDC_0xe9d7a7650a3611aa356f7cd80c262ef8626ee964'
+  '0xe9d7a7650a3611aa356f7cd80c262ef8626ee964': 'Scam_Token_5000USDC_0xe9d7a7650a3611aa356f7cd80c262ef8626ee964',
+  '0x6265b04a3e1f3a5a66850668460dd86aaa22420a': 'Scam_Token__0x6265b04a3e1f3a5a66850668460dd86aaa22420a',
+  '0xc9d055fa935c2790d05e6f349d50cc09bf161faf': 'Scam_Token_getUSDcoinorg_0xc9d055fa935c2790d05e6f349d50cc09bf161faf',
+  '0xb97f09d9e90a682153e5b37f8e3529a604dc586d': 'Scam_Token_5ETHatgetethus_0xb97f09d9e90a682153e5b37f8e3529a604dc586d',
+  '0xdb26922b64e59274c5b85f25d189d7c6233579f4': 'Scam_Token_Airdropat5000usdtus_0xdb26922b64e59274c5b85f25d189d7c6233579f4'
 }
 
 const CONTRACT_TO_ADDRESS = Object.fromEntries(Object.entries(ADDRESS_TO_CONTRACT).map(([id, value]) => [value, id]))
