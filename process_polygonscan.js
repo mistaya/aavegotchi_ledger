@@ -85,7 +85,23 @@ const ADDRESS_TO_TOKEN = {
   '0x9355e47e971cbc462e297a81175d2e7dbbd5c1a3': 'Scam_Token_UNI',
   '0x382586651f043cbdec7bb586e367d77b26d7d149': 'Scam_Token_WGC',
   '0x9e99acced32e848388c52c8d771af32c42501a12': 'Scam_Token_zksync',
-  '0x1ef250b4a02505cfb4fba4d1ce1bb7e411851739': 'Scam_Token_kuroro'
+  '0x1ef250b4a02505cfb4fba4d1ce1bb7e411851739': 'Scam_Token_kuroro',
+  '0xfddba7ca7af59ac1b3cc144c08db9bdde7378dd5': 'Scam_Token_RubberDucky_0xfddba7ca7af59ac1b3cc144c08db9bdde7378dd5',
+  '0x655304e9cc103b47f0afa0825767d6cce426717c': 'Scam_Token_OSSChain_0x655304e9cc103b47f0afa0825767d6cce426717c',
+  '0x886f107df86a9c1b04340fbf7da610f55156802c': 'Scam_Token_ERC20TOKEN_0x886f107df86a9c1b04340fbf7da610f55156802c',
+  '0x7b0d195f3e798e42da49cf91df147a3f4bdda75c': 'Scam_Token_BLASTCcom_0x7b0d195f3e798e42da49cf91df147a3f4bdda75c',
+  '0x57912d26a5285bc5d614bbf4e9be0e42406ede54': 'Scam_Token_ERC20TOKEN_0x57912d26a5285bc5d614bbf4e9be0e42406ede54',
+  '0x810dd3451bb39639db6714b5f9bdc7e8045780fa': 'Scam_Token_ERC20TOKEN_0x810dd3451bb39639db6714b5f9bdc7e8045780fa',
+  '0xdd88d5be184cec706e9dd04d10ca702b6dadc09c': 'Scam_Token_ACX_0xdd88d5be184cec706e9dd04d10ca702b6dadc09c',
+  '0x1cba5519248ab505c7ce936159135c062514c359': 'Scam_Token_ERC20TOKEN_0x1cba5519248ab505c7ce936159135c062514c359',
+  '0x2d43072b53c1f83d2897b410b9d87647db17f04f': 'Scam_Token_ERC20TOKEN_0x2d43072b53c1f83d2897b410b9d87647db17f04f',
+  '0x192fa6bb92bcd8a3b152b9023a4015bf28d41e40': 'Scam_Token_ERC20TOKEN_0x192fa6bb92bcd8a3b152b9023a4015bf28d41e40',
+  '0x2013ffd957ce67fdd5b9792089d9e10d08c31e9a': 'Scam_Token_ERC20TOKEN_0x2013ffd957ce67fdd5b9792089d9e10d08c31e9a',
+  '0x7f3dc24cfc1c5ba05d00e39fa922754330c5e429': 'Scam_Token_ERC20TOKEN_0x7f3dc24cfc1c5ba05d00e39fa922754330c5e429',
+  '0x371fef25323ce3160b743a2d73f444110fc80f16': 'Scam_Token_ERC20TOKEN_0x371fef25323ce3160b743a2d73f444110fc80f16',
+  '0xc169bf0ddb3259acc44ca94dbcc471083975c64c': 'Scam_Token_ERC20_0xc169bf0ddb3259acc44ca94dbcc471083975c64c',
+  '0xe1349dd3d7ef711ae7e259d12ecfa1f742643a31': 'Scam_Token_ERC20TOKEN_0xe1349dd3d7ef711ae7e259d12ecfa1f742643a31',
+  '0x5f4653440420456f26e8276e25136cd5d98f9120': 'Scam_Token_ERC20TOKEN_0x5f4653440420456f26e8276e25136cd5d98f9120'
 }
 const TOKEN_TO_ADDRESS = Object.fromEntries(Object.entries(ADDRESS_TO_TOKEN).map(([id, value]) => [value, id]))
 
@@ -202,7 +218,19 @@ const ADDRESS_TO_CONTRACT = {
   '0x6265b04a3e1f3a5a66850668460dd86aaa22420a': 'Scam_Token__0x6265b04a3e1f3a5a66850668460dd86aaa22420a',
   '0xc9d055fa935c2790d05e6f349d50cc09bf161faf': 'Scam_Token_getUSDcoinorg_0xc9d055fa935c2790d05e6f349d50cc09bf161faf',
   '0xb97f09d9e90a682153e5b37f8e3529a604dc586d': 'Scam_Token_5ETHatgetethus_0xb97f09d9e90a682153e5b37f8e3529a604dc586d',
-  '0xdb26922b64e59274c5b85f25d189d7c6233579f4': 'Scam_Token_Airdropat5000usdtus_0xdb26922b64e59274c5b85f25d189d7c6233579f4'
+  '0x7875bb6928a8538d79beb7478ac2b832fe7937d9': 'Scam_Token_5ETHatgetethus_0x7875bb6928a8538d79beb7478ac2b832fe7937d9',
+  '0xbd3689dacd67517646e3c4ed85e8cab0df253c83': 'Scam_Token_5000atweb3shibaus_0xbd3689dacd67517646e3c4ed85e8cab0df253c83',
+  '0xfd34d8cc6838d1ab1ddd06b12e3f5f55a206f85b': 'Scam_Token_Bonusat3ethus_0xfd34d8cc6838d1ab1ddd06b12e3f5f55a206f85b',
+  '0xf9e26b8f0e98f946a159d5f29467221708a6f640': 'Scam_Token_Bonusat5ethus_0xf9e26b8f0e98f946a159d5f29467221708a6f640',
+  '0x732b2363450f229b35fe12ee4384d1e3223d6eca': 'Scam_Token_ETHGasFeeRefundgasrefundscom_0x732b2363450f229b35fe12ee4384d1e3223d6eca',
+  '0xd8c26c30cdeaa1e3d2ba7cd666c0af5b2e95bd56': 'Scam_Token_ETHGasFeeRefundgasrefundscom_0xd8c26c30cdeaa1e3d2ba7cd666c0af5b2e95bd56',
+  '0x6fed37166e9e1e91b066c33cddd8bd607664990f': 'Scam_Token_Bonusat5ethus_0x6fed37166e9e1e91b066c33cddd8bd607664990f',
+  '0xf9353630190ec929363c0fad06619169cc76ba35': 'Scam_Token_ERC1155TOKEN_0xf9353630190ec929363c0fad06619169cc76ba35',
+  '0x219e3754d889479d929e188e8a6364af05799daa': 'Scam_Token__0x219e3754d889479d929e188e8a6364af05799daa',
+  '0xa4a491521545ed97763fc31e45b73d2e4417daa8': 'Scam_Token_10Kgiftatbitlytpepe_0xa4a491521545ed97763fc31e45b73d2e4417daa8',
+  '0x5baf493ada72abece0c2208aa5a1d5a9611b0bde': 'Scam_Token_10BNBat10bnbus_0x5baf493ada72abece0c2208aa5a1d5a9611b0bde',
+  '0xd04dfa60a42ccb251c39c8f03ff43acae4aed4d2': 'Scam_Token_1ETHatwebethlol_0xd04dfa60a42ccb251c39c8f03ff43acae4aed4d2',
+  '0xd3544e3e666dbe763a7d1f57c05c9a5cff6c59d9': 'Scam_Token_5000atadrpgbtpro_0xd3544e3e666dbe763a7d1f57c05c9a5cff6c59d9'
 }
 
 const CONTRACT_TO_ADDRESS = Object.fromEntries(Object.entries(ADDRESS_TO_CONTRACT).map(([id, value]) => [value, id]))
@@ -598,6 +626,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
   }
 
   const erc20Txs = await readCsvFile(fileExportERC20, findErc20TxColumns)
+  const erc20ScamEntries = []
   for (const tx of erc20Txs) {
     initTransaction(tx.txId)
     allTransactions[tx.txId].erc20.push({
@@ -612,7 +641,13 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
     })
     if (!ADDRESS_TO_TOKEN[tx.tokenContractAddress]) {
       console.log(`ERC20 transaction for unknown token: ${tx.tokenContractAddress}`, tx)
+      const simplifiedName = tx.tokenName.replaceAll(/\W/g, "")
+      erc20ScamEntries.push(`'${tx.tokenContractAddress}': 'Scam_Token_${simplifiedName}_${tx.tokenContractAddress}'`)
     }
+  }
+  if (erc20ScamEntries.length) {
+    console.log('All unknown ERC20s:')
+    console.log([...new Set(erc20ScamEntries)].join(",\n"))
   }
 
   // "Txhash","Blockno","UnixTimestamp","DateTime (UTC)","From","To","ContractAddress","TokenName","TokenSymbol","Token ID","Type","Quantity"
@@ -696,7 +731,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
   }
   if (erc155ScamEntries.length) {
     console.log('All unknown ERC1155s:')
-    console.log(erc155ScamEntries.join(",\n"))
+    console.log([...new Set(erc155ScamEntries)].join(",\n"))
   }
 
   // Inspect and categorise transactions
