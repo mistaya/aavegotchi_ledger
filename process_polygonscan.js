@@ -9,6 +9,11 @@ BigNumber.config({ EXPONENTIAL_AT: [-100, 100] })
 
 const ERC1155_PRICES_FILENAME = './prices/erc1155Prices.json'
 
+const SCAM_DUST_FROM_ADDRESSES = [
+  '0xd24d554728385fc84fcf19d53cfea5f89a6d339b',
+  '0x17b2a831d132e01cc93b12a379ef74402728f49a'
+]
+
 const ADDRESS_TO_TOKEN = {
   '0x385eeac5cb85a38a9a07a70c73e0a3271cfb54a7': 'GHST',
   '0x403e967b044d4be25170310157cb1a4bf10bdd0f': 'FUD',
@@ -101,7 +106,13 @@ const ADDRESS_TO_TOKEN = {
   '0x371fef25323ce3160b743a2d73f444110fc80f16': 'Scam_Token_ERC20TOKEN_0x371fef25323ce3160b743a2d73f444110fc80f16',
   '0xc169bf0ddb3259acc44ca94dbcc471083975c64c': 'Scam_Token_ERC20_0xc169bf0ddb3259acc44ca94dbcc471083975c64c',
   '0xe1349dd3d7ef711ae7e259d12ecfa1f742643a31': 'Scam_Token_ERC20TOKEN_0xe1349dd3d7ef711ae7e259d12ecfa1f742643a31',
-  '0x5f4653440420456f26e8276e25136cd5d98f9120': 'Scam_Token_ERC20TOKEN_0x5f4653440420456f26e8276e25136cd5d98f9120'
+  '0x5f4653440420456f26e8276e25136cd5d98f9120': 'Scam_Token_ERC20TOKEN_0x5f4653440420456f26e8276e25136cd5d98f9120',
+  '0xc31e6595ccc1cd2497f8ad38f1acf80c6a1a8e1d': 'Scam_Token_ERC20TOKEN_0xc31e6595ccc1cd2497f8ad38f1acf80c6a1a8e1d',
+  '0x4925dd79b5819773bda219d23a25bd404d7b3df7': 'Scam_Token_ERC20TOKEN_0x4925dd79b5819773bda219d23a25bd404d7b3df7',
+  '0x9b9aa45f27b8bdda1d61c18a7ba899c949460492': 'Scam_Token_ERC20MATIC_0x9b9aa45f27b8bdda1d61c18a7ba899c949460492',
+  '0xef478d61a2cbf1c21fdb1acd0b3514544c43892e': 'Scam_Token_ERC20_0xef478d61a2cbf1c21fdb1acd0b3514544c43892e',
+  '0xd32a9bfb8eeb697dec347c6b87cd551f3314c275': 'Scam_Token_ERC20USDinPS_0xd32a9bfb8eeb697dec347c6b87cd551f3314c275',
+  '0x822ae76b3763b4e5efa1816b3898568cc6c008af': 'Scam_Token_ERC20polygonrewardsDOTcom_0x822ae76b3763b4e5efa1816b3898568cc6c008af'
 }
 const TOKEN_TO_ADDRESS = Object.fromEntries(Object.entries(ADDRESS_TO_TOKEN).map(([id, value]) => [value, id]))
 
@@ -122,10 +133,12 @@ const ADDRESS_TO_CONTRACT = {
   '0x2c1a288353e136b9e4b467aadb307133fffeab25': 'VersePayout', // Alchemica payouts from Gotchiverse Apr 2022
   '0xa0f32863ac0e82d36df959a95fedb661c1d32a6f': 'VersePayout2', // Alchemica payouts from Gotchiverse Apr 2022
   '0xc57feb6d8d5edfcce4027c243dceb2b51b0e318b': 'VersePayout3', // Alchemica payouts from Gotchiverse Apr 2022
+  '0x2e31367f1d773cc1cc071a16ccb70ef4ae1ccdba': 'GotchiBattlerPayout',
   '0xdd564df884fd4e217c9ee6f65b4ba6e5641eac63': 'GotchiVault',
   '0x11111112542d85b3ef69ae05771c2dccff4faa26': '1inch',
   '0x1111111254fb6c44bac0bed2854e76f90643097d': '1inch2',
   '0x1111111254eeb25477b68fb85ed929f73a960582': '1inch3',
+  '0x111111125421ca6dc452d289314280a0f8842a65': '1inch4',
   '0x8dfdea6a4818d2aa7463edb9a8841cb0c04255af': 'Zapper',
   '0xdef1c0ded9bec7f1a1670819833240f027b25eff': 'QuickSwap',
   '0x2953399124f0cbb46d2cbacd8a89cf0599974963': 'OpenSeaCollections',
@@ -230,7 +243,20 @@ const ADDRESS_TO_CONTRACT = {
   '0xa4a491521545ed97763fc31e45b73d2e4417daa8': 'Scam_Token_10Kgiftatbitlytpepe_0xa4a491521545ed97763fc31e45b73d2e4417daa8',
   '0x5baf493ada72abece0c2208aa5a1d5a9611b0bde': 'Scam_Token_10BNBat10bnbus_0x5baf493ada72abece0c2208aa5a1d5a9611b0bde',
   '0xd04dfa60a42ccb251c39c8f03ff43acae4aed4d2': 'Scam_Token_1ETHatwebethlol_0xd04dfa60a42ccb251c39c8f03ff43acae4aed4d2',
-  '0xd3544e3e666dbe763a7d1f57c05c9a5cff6c59d9': 'Scam_Token_5000atadrpgbtpro_0xd3544e3e666dbe763a7d1f57c05c9a5cff6c59d9'
+  '0xd3544e3e666dbe763a7d1f57c05c9a5cff6c59d9': 'Scam_Token_5000atadrpgbtpro_0xd3544e3e666dbe763a7d1f57c05c9a5cff6c59d9',
+  '0x770b8eb8d27c2702225bd460539edd2597aa33ca': 'Scam_Token_Rewardat10bnborg_0x770b8eb8d27c2702225bd460539edd2597aa33ca',
+  '0xde726708e7aa3732adbab9502b960dd5bb31e62d': 'Scam_Token_ERC1155TOKEN_0xde726708e7aa3732adbab9502b960dd5bb31e62d',
+  '0xebb8b099948f8c84ad2f9d1e48f0bba4ce67e9f6': 'Scam_Token_ERC1155TOKEN_0xebb8b099948f8c84ad2f9d1e48f0bba4ce67e9f6',
+  '0x5ecade90ed2154aa6ce5ec6fd3b9bbd4e8f3cf97': 'Scam_Token_mysterynft_0x5ecade90ed2154aa6ce5ec6fd3b9bbd4e8f3cf97',
+  '0x4ee7001628bdb6fe2236d5bf9331cbb18d41491e': 'Scam_Token_ERC1155TOKEN_0x4ee7001628bdb6fe2236d5bf9331cbb18d41491e',
+  '0x736054f25e2ac8cfb08775c56b93f901054d6ee3': 'Scam_Token_10BNBRewardatairdropbnbcfd_0x736054f25e2ac8cfb08775c56b93f901054d6ee3',
+  '0xca1ca230692daa0873ffeec8784a77870de81319': 'Scam_Token_LayerZeroTokenatlayerzeropl_0xca1ca230692daa0873ffeec8784a77870de81319',
+  '0x53596faddafde897f1e15d8bb07a3bc111b01a1d': 'Scam_Token_ERC1155TOKEN_0x53596faddafde897f1e15d8bb07a3bc111b01a1d',
+  '0x657b3496aac81d3f3bc683d99905a55250aca5b9': 'Scam_Token_ERC1155TOKEN_0x657b3496aac81d3f3bc683d99905a55250aca5b9',
+  '0xfa05edd0a4fbd7627a8900f9e6bb9fad0ed8d5dd': 'Scam_Token_50000FREEmebountyio_0xfa05edd0a4fbd7627a8900f9e6bb9fad0ed8d5dd',
+  '0x27a3292eb66707e18e08efa4f1520593d9808c7e': 'Scam_Token_50000FREEmebountyio_0x27a3292eb66707e18e08efa4f1520593d9808c7e',
+  '0x3f48cda3a919b61ec902e1edfae7ee78cf6bb52d': 'Scam_Token_0x3f48cda3a919b61ec902e1edfae7ee78cf6bb52d',
+  '0x0e85a1ed7006c4e09c957011197ec664c5c4ce0c': 'Scam_Token_0x0e85a1ed7006c4e09c957011197ec664c5c4ce0c'
 }
 
 const CONTRACT_TO_ADDRESS = Object.fromEntries(Object.entries(ADDRESS_TO_CONTRACT).map(([id, value]) => [value, id]))
@@ -741,6 +767,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
     approvals: [],
     reverted: [],
     deposits: [],
+    depositsScamDust: [],
     transfers: [],
     trades: [],
     gotchiSummons: [],
@@ -768,6 +795,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
     gotchiverseCrafting: [],
     gotchiverseInstallationsEquipped: [],
     gotchiverseInstallationUpgrades: [],
+    gotchiBattlerIncome: [],
     unprocessed: []
   }
 
@@ -1075,6 +1103,32 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
           }
           data.pocketTransfers.push(transfer)
           console.log(label)
+        }
+      } else if (isCallingAavegotchi && tx.method === 'Batch Transfer Escrow') {
+        if (!txGroup.erc20.length || txGroup.erc721.length || txGroup.erc1155.length || txGroup.internal.length) {
+          console.error(`Unexpected Gotchi Pocket transfer txGroup contents`, txGroup)
+        } else {
+          let handledFee = false
+          for (const erc20tx of txGroup.erc20) {
+            const outOfPocket = erc20tx.toAddress === address
+            const pocketAddress = outOfPocket ? erc20tx.fromAddress : erc20tx.toAddress
+            const label = `Transfer ${erc20tx.tokenValue} ${erc20tx.token || 'Unknown Token'} ${outOfPocket ? 'out of' : 'into'} Gotchi Pocket (batch tx)`
+            const transfer = {
+              txId: tx.txId,
+              date: tx.date,
+              outOfPocket,
+              pocketAddress,
+              asset: erc20tx.token,
+              assetContractAddress: erc20tx.tokenContractAddress,
+              amount: erc20tx.tokenValue,
+              maticValueFee: !handledFee ? tx.maticValueFee : '0',
+              type: 'Transfer Escrow',
+              label
+            }
+            handledFee = true
+            data.pocketTransfers.push(transfer)
+            console.log(label)
+          }
         }
       } else if (isCallingAavegotchi && ['Set ERC1155Listing', 'Add ERC721Listing'].includes(tx.method)) {
         if (txGroup.erc20.length !== 1 || txGroup.erc721.length || txGroup.erc1155.length) {
@@ -1449,7 +1503,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
         console.log(label)
       } else if (
           tx.fromAddress === address &&
-          [CONTRACT_TO_ADDRESS['1inch'], CONTRACT_TO_ADDRESS['1inch2'], CONTRACT_TO_ADDRESS['1inch3'], CONTRACT_TO_ADDRESS['Zapper'], CONTRACT_TO_ADDRESS['QuickSwap']].includes(tx.toAddress) &&
+          [CONTRACT_TO_ADDRESS['1inch'], CONTRACT_TO_ADDRESS['1inch2'], CONTRACT_TO_ADDRESS['1inch3'], CONTRACT_TO_ADDRESS['1inch4'], CONTRACT_TO_ADDRESS['Zapper'], CONTRACT_TO_ADDRESS['QuickSwap']].includes(tx.toAddress) &&
           ['0x7c025200', 'Zap Out', '0x415565b0', 'Swap'].includes(tx.method)
         ) {
         if (txGroup.erc721.length || txGroup.erc1155.length) {
@@ -1707,6 +1761,39 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
 
         data.gotchiTransfersIn.push(txGroup)
         // console.log('Gotchi transfer in (to inspect)')
+
+      // Gotchi Battler
+      } else if (
+        txGroup.erc721.length === 0 &&
+        txGroup.erc1155.length === 0 &&
+        txGroup.erc20.length &&
+        txGroup.erc20.every(
+          erc20tx => erc20tx.toAddress === address &&
+            [CONTRACT_TO_ADDRESS['GotchiBattlerPayout']].includes(erc20tx.fromAddress)
+            // payout token can vary, allow any
+        )
+      ) {
+        // Extract income
+        const date = txGroup.erc20[0].date
+        const acquired = []
+        for (const erc20tx of txGroup.erc20) {
+          if (erc20tx.tokenValue !== '0') {
+            acquired.push({
+              asset: erc20tx.token,
+              assetContractAddress: erc20tx.tokenContractAddress,
+              amount: erc20tx.tokenValue
+            })
+          }
+        }
+        const label = `Gotchi Battler winnings (${acquired.map(item => `${item.amount} ${item.asset}`).join(', ')})`
+        data.gotchiBattlerIncome.push({
+          txId: txGroup.txId,
+          date,
+          label,
+          acquired,
+          fees: []
+        })
+        console.log(label)
 
       // Gotchiverse
       } else if (
@@ -2012,7 +2099,9 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
         const erc20tx = txGroup.erc20[0]
         const asset = erc20tx.token
         const amount = erc20tx.tokenValue
-        const label = `Receive ${amount} ${asset} from ${erc20tx.fromAddress}`
+        const isScamDust = SCAM_DUST_FROM_ADDRESSES.includes(erc20tx.fromAddress)
+        const fromLabel = isScamDust ? 'Scam Dust' : erc20tx.fromAddress
+        const label = `Receive ${amount} ${asset} from ${fromLabel}`
         const deposit = {
           txId: erc20tx.txId,
           date: erc20tx.date,
@@ -2024,7 +2113,11 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
           }],
           label
         }
-        data.deposits.push(deposit)
+        if (isScamDust) {
+          data.depositsScamDust.push(deposit)
+        } else {
+          data.deposits.push(deposit)
+        }
 
         console.log(label)
 
@@ -2608,7 +2701,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
   // which are ERC20 transfers with one token in and a different token out (or one MATIC internal transfer)
   const nowProcessed = []
   const is1inchOrderFilledLog = function (log) {
-    return log && [CONTRACT_TO_ADDRESS['1inch3']].includes(log.address.toLowerCase())
+    return log && [CONTRACT_TO_ADDRESS['1inch3'], CONTRACT_TO_ADDRESS['1inch4']].includes(log.address.toLowerCase())
   }
   for (const txGroup of data.unprocessed) {
     if (
@@ -2675,9 +2768,8 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
         // console.log(`unprocessed likely trade of ${disposedAsset.amount} ${disposedAsset.asset} to ${acquiredAsset.amount} ${acquiredAsset.asset}`, txGroup)
         const tx = await fetchTransactionReceiptEthers(provider, txGroup.txId)
         // console.log('Fetched tx receipt', tx)
-        // Transaction receipt event logs begin with an OrderFilled for 1inch contract
-        // Or sometimes the first log may be an approval, so also look at the second log
-        if (is1inchOrderFilledLog(tx.logs[0]) || is1inchOrderFilledLog(tx.logs[1])) {
+        // Transaction receipt event logs contain an OrderFilled for 1inch contract
+        if (tx.logs.some(is1inchOrderFilledLog)) {
           const soldLabel = `${disposedAsset.amount} ${disposedAsset.asset || disposedAsset.assetContractAddress}`
           const boughtLabel = `${acquiredAsset.amount} ${acquiredAsset.asset || acquiredAsset.assetContractAddress}`
           const label = `1inch gasless trade: ${soldLabel} -> ${boughtLabel} (${date})`
