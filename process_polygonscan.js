@@ -30,6 +30,7 @@ const ADDRESS_TO_TOKEN = {
   '0x1d2a0e5ec8e5bbdca5cb219e649b565d8e5c3360': 'amAAVE',
   '0x8df3aad3a84da6b69a4da8aec3ea40d9091b2ac4': 'amWMATIC',
   '0x28424507fefb6f7f8e9d3860f56504e4e5f5f390': 'amWETH',
+  '0x27f8d03b3a2196956ed754badc28d73be8830a6e': 'amDAI',
   '0x8c8bdbe9cee455732525086264a4bf9cf821c498': 'maUNI',
   '0x73958d46b7aa2bc94926d8a215fa560a5cdca3ea': 'wapGHST',
   '0x6e14790535c04b1a58592fbee6109d9bc57a51ad': 'VLT',
@@ -112,7 +113,10 @@ const ADDRESS_TO_TOKEN = {
   '0x9b9aa45f27b8bdda1d61c18a7ba899c949460492': 'Scam_Token_ERC20MATIC_0x9b9aa45f27b8bdda1d61c18a7ba899c949460492',
   '0xef478d61a2cbf1c21fdb1acd0b3514544c43892e': 'Scam_Token_ERC20_0xef478d61a2cbf1c21fdb1acd0b3514544c43892e',
   '0xd32a9bfb8eeb697dec347c6b87cd551f3314c275': 'Scam_Token_ERC20USDinPS_0xd32a9bfb8eeb697dec347c6b87cd551f3314c275',
-  '0x822ae76b3763b4e5efa1816b3898568cc6c008af': 'Scam_Token_ERC20polygonrewardsDOTcom_0x822ae76b3763b4e5efa1816b3898568cc6c008af'
+  '0x822ae76b3763b4e5efa1816b3898568cc6c008af': 'Scam_Token_ERC20polygonrewardsDOTcom_0x822ae76b3763b4e5efa1816b3898568cc6c008af',
+  '0x8bca1adaac26b4640d52945372fdad5fccfecf37': 'Scam_Token_ERC2050ETH_0x8bca1adaac26b4640d52945372fdad5fccfecf37',
+  '0x09b79fd57bd42f747eceb76beb723c827815f389': 'Scam_Token_ERC20_0x09b79fd57bd42f747eceb76beb723c827815f389',
+  '0x04565fe9aa3ae571ada8e1bebf8282c4e5247b2a': 'Scam_Token_WildGoatCoin_0x04565fe9aa3ae571ada8e1bebf8282c4e5247b2a'
 }
 const TOKEN_TO_ADDRESS = Object.fromEntries(Object.entries(ADDRESS_TO_TOKEN).map(([id, value]) => [value, id]))
 
@@ -256,7 +260,8 @@ const ADDRESS_TO_CONTRACT = {
   '0xfa05edd0a4fbd7627a8900f9e6bb9fad0ed8d5dd': 'Scam_Token_50000FREEmebountyio_0xfa05edd0a4fbd7627a8900f9e6bb9fad0ed8d5dd',
   '0x27a3292eb66707e18e08efa4f1520593d9808c7e': 'Scam_Token_50000FREEmebountyio_0x27a3292eb66707e18e08efa4f1520593d9808c7e',
   '0x3f48cda3a919b61ec902e1edfae7ee78cf6bb52d': 'Scam_Token_0x3f48cda3a919b61ec902e1edfae7ee78cf6bb52d',
-  '0x0e85a1ed7006c4e09c957011197ec664c5c4ce0c': 'Scam_Token_0x0e85a1ed7006c4e09c957011197ec664c5c4ce0c'
+  '0x0e85a1ed7006c4e09c957011197ec664c5c4ce0c': 'Scam_Token_0x0e85a1ed7006c4e09c957011197ec664c5c4ce0c',
+  '0xec59b4dfcb9af83f28d045bd214cb3e5345b2bf6': 'Scam_Token_0xec59b4dfcb9af83f28d045bd214cb3e5345b2bf6'
 }
 
 const CONTRACT_TO_ADDRESS = Object.fromEntries(Object.entries(ADDRESS_TO_CONTRACT).map(([id, value]) => [value, id]))
@@ -920,6 +925,17 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
           maticValueFee: tx.maticValueFee,
           label: 'Approve transfer of AG-REALM'
         })
+      } else if (tx.fromAddress === address && [CONTRACT_TO_ADDRESS['AavegotchiWearables'], CONTRACT_TO_ADDRESS['GotchiTiles']].includes(tx.toAddress)
+            && tx.method === 'Set Approval For All') {
+        data.approvals.push({
+          txId: tx.txId,
+          date: tx.date,
+          fromAddress: tx.fromAddress,
+          tokenAddress: tx.toAddress,
+          token: 'Gotchi', // just for somewhere to log the event
+          maticValueFee: tx.maticValueFee,
+          label: 'Approve transfer of AG Assets'
+        })
       } else if (isCallingGotchiRealm && ['Equip Installation', 'Batch Equip'].includes(tx.method)) {
         if (
           txGroup.erc1155.length === 0 || txGroup.internal.length || txGroup.erc20.length || txGroup.erc721.length
@@ -1052,7 +1068,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
             'Batch Drop Claim XP Drop',
             'Spend Skill Points', 'Set Pet Operator For All', 'Cancel ERC721Listing', 'Cancel ERC1155Listing',
             'Create Whitelist', 'Update Whitelist', 'Remove Addresses From Whitelist',
-            'Add Gotchi Lending', 'Cancel Gotchi Lending By Token',
+            'Add Gotchi Lending', 'Cancel Gotchi Lending By Token', 'Cancel Gotchi Lending',
             'Claim And End Gotchi Lending' // we captured the version of this with erc20 income earlier
           ].includes(tx.method)
           ||
@@ -1841,7 +1857,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
         //  sent Aavegotchi ERC1155
         txGroup.erc1155.length === 1 &&
         txGroup.erc1155[0].fromAddress === address &&
-        [CONTRACT_TO_ADDRESS['Aavegotchi'], CONTRACT_TO_ADDRESS['GotchiStaking'], CONTRACT_TO_ADDRESS['GotchiForge']].includes(txGroup.erc1155[0].tokenContractAddress) &&
+        [CONTRACT_TO_ADDRESS['Aavegotchi'], CONTRACT_TO_ADDRESS['AavegotchiWearables'], CONTRACT_TO_ADDRESS['GotchiStaking'], CONTRACT_TO_ADDRESS['GotchiForge']].includes(txGroup.erc1155[0].tokenContractAddress) &&
         //  no other transfers
         !txGroup.internal.length &&
         !txGroup.erc721.length
