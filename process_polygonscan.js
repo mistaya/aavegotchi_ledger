@@ -116,7 +116,12 @@ const ADDRESS_TO_TOKEN = {
   '0x822ae76b3763b4e5efa1816b3898568cc6c008af': 'Scam_Token_ERC20polygonrewardsDOTcom_0x822ae76b3763b4e5efa1816b3898568cc6c008af',
   '0x8bca1adaac26b4640d52945372fdad5fccfecf37': 'Scam_Token_ERC2050ETH_0x8bca1adaac26b4640d52945372fdad5fccfecf37',
   '0x09b79fd57bd42f747eceb76beb723c827815f389': 'Scam_Token_ERC20_0x09b79fd57bd42f747eceb76beb723c827815f389',
-  '0x04565fe9aa3ae571ada8e1bebf8282c4e5247b2a': 'Scam_Token_WildGoatCoin_0x04565fe9aa3ae571ada8e1bebf8282c4e5247b2a'
+  '0x04565fe9aa3ae571ada8e1bebf8282c4e5247b2a': 'Scam_Token_WildGoatCoin_0x04565fe9aa3ae571ada8e1bebf8282c4e5247b2a',
+  '0xa15e8a446fa2a4404329028e126f8d0d704f1141': 'Scam_Token_ERC20RichardPawkins_0xa15e8a446fa2a4404329028e126f8d0d704f1141',
+  '0x263d280cc3073df415f8b16bf06dff3f0001abd4': 'Scam_Token_ERC20PHA_0x263d280cc3073df415f8b16bf06dff3f0001abd4',
+  '0x26fe5d0ac364b88cda3129c99c609ad31fec93be': 'Scam_Token_ERC20_0x26fe5d0ac364b88cda3129c99c609ad31fec93be',
+  '0xf16c16a8808f4b68af001505e7bc641e12fc9956': 'Scam_Token_ERC20404Coin_0xf16c16a8808f4b68af001505e7bc641e12fc9956',
+  '0xb24280f4a70cd5c9a03ae35b18c01f6b1cfa9e80': 'Scam_Token_ERC20FlatEarthCoin_0xb24280f4a70cd5c9a03ae35b18c01f6b1cfa9e80'
 }
 const TOKEN_TO_ADDRESS = Object.fromEntries(Object.entries(ADDRESS_TO_TOKEN).map(([id, value]) => [value, id]))
 
@@ -261,7 +266,8 @@ const ADDRESS_TO_CONTRACT = {
   '0x27a3292eb66707e18e08efa4f1520593d9808c7e': 'Scam_Token_50000FREEmebountyio_0x27a3292eb66707e18e08efa4f1520593d9808c7e',
   '0x3f48cda3a919b61ec902e1edfae7ee78cf6bb52d': 'Scam_Token_0x3f48cda3a919b61ec902e1edfae7ee78cf6bb52d',
   '0x0e85a1ed7006c4e09c957011197ec664c5c4ce0c': 'Scam_Token_0x0e85a1ed7006c4e09c957011197ec664c5c4ce0c',
-  '0xec59b4dfcb9af83f28d045bd214cb3e5345b2bf6': 'Scam_Token_0xec59b4dfcb9af83f28d045bd214cb3e5345b2bf6'
+  '0xec59b4dfcb9af83f28d045bd214cb3e5345b2bf6': 'Scam_Token_0xec59b4dfcb9af83f28d045bd214cb3e5345b2bf6',
+  '0xfd6edfbbc01912705b87844b0b72ddec3336647c': 'Scam_Token_0xfd6edfbbc01912705b87844b0b72ddec3336647c'
 }
 
 const CONTRACT_TO_ADDRESS = Object.fromEntries(Object.entries(ADDRESS_TO_CONTRACT).map(([id, value]) => [value, id]))
@@ -914,6 +920,16 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
           token: firstTicketToken.asset,
           maticValueFee: tx.maticValueFee,
           label: 'Approve transfer of raffle tickets'
+        })
+      } else if (tx.fromAddress === address && tx.toAddress === CONTRACT_TO_ADDRESS['GotchiInstallations'] && tx.method === 'Set Approval For All') {
+        data.approvals.push({
+          txId: tx.txId,
+          date: tx.date,
+          fromAddress: tx.fromAddress,
+          tokenAddress: tx.toAddress,
+          token: 'AG-REALM', // just for somewhere to log the event
+          maticValueFee: tx.maticValueFee,
+          label: 'Approve transfer of AG Installations'
         })
       } else if (isCallingGotchiRealm && tx.method === 'Set Approval For All') {
         data.approvals.push({
@@ -1857,7 +1873,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
         //  sent Aavegotchi ERC1155
         txGroup.erc1155.length === 1 &&
         txGroup.erc1155[0].fromAddress === address &&
-        [CONTRACT_TO_ADDRESS['Aavegotchi'], CONTRACT_TO_ADDRESS['AavegotchiWearables'], CONTRACT_TO_ADDRESS['GotchiStaking'], CONTRACT_TO_ADDRESS['GotchiForge']].includes(txGroup.erc1155[0].tokenContractAddress) &&
+        [CONTRACT_TO_ADDRESS['Aavegotchi'], CONTRACT_TO_ADDRESS['AavegotchiWearables'], CONTRACT_TO_ADDRESS['GotchiInstallations'], CONTRACT_TO_ADDRESS['GotchiTiles'], CONTRACT_TO_ADDRESS['GotchiStaking'], CONTRACT_TO_ADDRESS['GotchiForge']].includes(txGroup.erc1155[0].tokenContractAddress) &&
         //  no other transfers
         !txGroup.internal.length &&
         !txGroup.erc721.length
