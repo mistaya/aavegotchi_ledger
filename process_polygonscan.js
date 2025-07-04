@@ -121,7 +121,14 @@ const ADDRESS_TO_TOKEN = {
   '0x263d280cc3073df415f8b16bf06dff3f0001abd4': 'Scam_Token_ERC20PHA_0x263d280cc3073df415f8b16bf06dff3f0001abd4',
   '0x26fe5d0ac364b88cda3129c99c609ad31fec93be': 'Scam_Token_ERC20_0x26fe5d0ac364b88cda3129c99c609ad31fec93be',
   '0xf16c16a8808f4b68af001505e7bc641e12fc9956': 'Scam_Token_ERC20404Coin_0xf16c16a8808f4b68af001505e7bc641e12fc9956',
-  '0xb24280f4a70cd5c9a03ae35b18c01f6b1cfa9e80': 'Scam_Token_ERC20FlatEarthCoin_0xb24280f4a70cd5c9a03ae35b18c01f6b1cfa9e80'
+  '0xb24280f4a70cd5c9a03ae35b18c01f6b1cfa9e80': 'Scam_Token_ERC20FlatEarthCoin_0xb24280f4a70cd5c9a03ae35b18c01f6b1cfa9e80',
+  '0x5d16fc283efd47d865d4dbc7e1b15d21519604cc': 'Scam_Token_ERC20MoodyCoin_0x5d16fc283efd47d865d4dbc7e1b15d21519604cc',
+  '0x5ace11bc2fd50270af42bf6a7b1d128c18fd495d': 'Scam_Token_ERC20TOKEN_0x5ace11bc2fd50270af42bf6a7b1d128c18fd495d',
+  '0xd10dba4c253d9924aff361bc2bdb49b1d877f526': 'Scam_Token_ERC20TOKEN_0xd10dba4c253d9924aff361bc2bdb49b1d877f526',
+  '0xd7b722ff1ee07d48a7505d4ef2ca3342a39c4e0a': 'Scam_Token_ERC20TOKEN_0xd7b722ff1ee07d48a7505d4ef2ca3342a39c4e0a',
+  '0x7dc22596920956a3a0562c5083592dcef65d7ba6': 'Scam_Token_ERC20TOKEN_0x7dc22596920956a3a0562c5083592dcef65d7ba6',
+  '0xaa1a12d10df6e029866adcda26b0557aab417b99': 'Scam_Token_ERC20UD_0xaa1a12d10df6e029866adcda26b0557aab417b99',
+  '0x37d25b91f8a5669dc5230b33a4a251463a68ae52': 'Scam_Token_ERC20TOKEN_0x37d25b91f8a5669dc5230b33a4a251463a68ae52'
 }
 const TOKEN_TO_ADDRESS = Object.fromEntries(Object.entries(ADDRESS_TO_TOKEN).map(([id, value]) => [value, id]))
 
@@ -2224,8 +2231,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
 
   const gotchiVaultAbi = await readJsonFile('./gotchiVaultAbi.json')
   const gotchiVaultIface = new ethers.utils.Interface(gotchiVaultAbi)
-  // let provider = new ethers.providers.JsonRpcProvider('https://polygon-rpc.com/')
-  const provider = new ethers.providers.JsonRpcProvider('https://rpc.ankr.com/polygon')
+  const provider = new ethers.providers.JsonRpcProvider('https://polygon-rpc.com/')
 
   // Fetch transactions for gotchiverseInstallationsEquipped, so we can look up the land
   for (const equippedEvent of data.gotchiverseInstallationsEquipped) {
