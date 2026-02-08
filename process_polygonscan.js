@@ -128,7 +128,21 @@ const ADDRESS_TO_TOKEN = {
   '0xd7b722ff1ee07d48a7505d4ef2ca3342a39c4e0a': 'Scam_Token_ERC20TOKEN_0xd7b722ff1ee07d48a7505d4ef2ca3342a39c4e0a',
   '0x7dc22596920956a3a0562c5083592dcef65d7ba6': 'Scam_Token_ERC20TOKEN_0x7dc22596920956a3a0562c5083592dcef65d7ba6',
   '0xaa1a12d10df6e029866adcda26b0557aab417b99': 'Scam_Token_ERC20UD_0xaa1a12d10df6e029866adcda26b0557aab417b99',
-  '0x37d25b91f8a5669dc5230b33a4a251463a68ae52': 'Scam_Token_ERC20TOKEN_0x37d25b91f8a5669dc5230b33a4a251463a68ae52'
+  '0x37d25b91f8a5669dc5230b33a4a251463a68ae52': 'Scam_Token_ERC20TOKEN_0x37d25b91f8a5669dc5230b33a4a251463a68ae52',
+  '0xf7b7af9879df15af46adafbafbfee4aa7ce4b3ca': 'Scam_Token_ERC20TOKEN_0xf7b7af9879df15af46adafbafbfee4aa7ce4b3ca',
+  '0x2cec94b952da28d85850e366ddd379939f3d85af': 'Scam_Token_ERC20TOKEN_0x2cec94b952da28d85850e366ddd379939f3d85af',
+  '0x9b63c0f0bf41a0ed83e8bcbbcd14944108083f8e': 'Scam_Token_ERC20POL_0x9b63c0f0bf41a0ed83e8bcbbcd14944108083f8e',
+  '0x32898be3deab4d9d25331b980e77cd5e35cbb265': 'Scam_Token_ERC20TOKEN_0x32898be3deab4d9d25331b980e77cd5e35cbb265',
+  '0xe1637d9428b1a32d27b4e97f3b36cfb585196cd7': 'Scam_Token_ERC20TOKEN_0xe1637d9428b1a32d27b4e97f3b36cfb585196cd7',
+  '0x0c35dc291bc2c58d769e581b601501130e4d8af2': 'Scam_Token_ERC20TOKEN_0x0c35dc291bc2c58d769e581b601501130e4d8af2',
+  '0x36e39ecc9d0f2064fdd139c8a059a0243f1df747': 'Scam_Token_ERC20TOKEN_0x36e39ecc9d0f2064fdd139c8a059a0243f1df747',
+  '0x11443459f72b9ecf098d5cd0438db8cc52d3d573': 'Scam_Token_ERC20TOKEN_0x11443459f72b9ecf098d5cd0438db8cc52d3d573',
+  '0xbf026401af450e16ce6d6c2ef55f03e63126c6cd': 'Scam_Token_ERC20TOKEN_0xbf026401af450e16ce6d6c2ef55f03e63126c6cd',
+  '0xb22a060c4727110555c7d0b704bd9d678ede7934': 'Scam_Token_ERC20TOKEN_0xb22a060c4727110555c7d0b704bd9d678ede7934',
+  '0xa5c9b36600b1a6d1c21e65a60ed862139c7ac7f9': 'Scam_Token_ERC20TOKEN_0xa5c9b36600b1a6d1c21e65a60ed862139c7ac7f9',
+  '0x9bf3ea5ed962fad52cb646dd8bdabfaa5438d075': 'Scam_Token_ERC20TOKEN_0x9bf3ea5ed962fad52cb646dd8bdabfaa5438d075',
+  '0x09a8221378ea9d50f5fc15f3e03f9ff513232cce': 'Scam_Token_ERC20REWARDVisittmessol_shiba_0x09a8221378ea9d50f5fc15f3e03f9ff513232cce',
+  '0x75376dea616ba53d5f4d7765c6cd9d02a39d4562': 'Scam_Token_ERC20POL_0x75376dea616ba53d5f4d7765c6cd9d02a39d4562'
 }
 const TOKEN_TO_ADDRESS = Object.fromEntries(Object.entries(ADDRESS_TO_TOKEN).map(([id, value]) => [value, id]))
 
@@ -274,7 +288,15 @@ const ADDRESS_TO_CONTRACT = {
   '0x3f48cda3a919b61ec902e1edfae7ee78cf6bb52d': 'Scam_Token_0x3f48cda3a919b61ec902e1edfae7ee78cf6bb52d',
   '0x0e85a1ed7006c4e09c957011197ec664c5c4ce0c': 'Scam_Token_0x0e85a1ed7006c4e09c957011197ec664c5c4ce0c',
   '0xec59b4dfcb9af83f28d045bd214cb3e5345b2bf6': 'Scam_Token_0xec59b4dfcb9af83f28d045bd214cb3e5345b2bf6',
-  '0xfd6edfbbc01912705b87844b0b72ddec3336647c': 'Scam_Token_0xfd6edfbbc01912705b87844b0b72ddec3336647c'
+  '0xfd6edfbbc01912705b87844b0b72ddec3336647c': 'Scam_Token_0xfd6edfbbc01912705b87844b0b72ddec3336647c',
+  '0xf9df773ce2f9a818597e9bce0985f5c11eee6af5': 'Scam_Token_ShibaInuTokenAirdrop_0xf9df773ce2f9a818597e9bce0985f5c11eee6af5',
+  '0x3aa8b72cfcc12400f8faf63747348bf50c69bd3c': 'Scam_Token_ERC1155TOKEN_0x3aa8b72cfcc12400f8faf63747348bf50c69bd3c',
+  '0x2169d71ed4c1066c8011ba2c8a069b2113162cbb': 'Scam_Token_0x2169d71ed4c1066c8011ba2c8a069b2113162cbb',
+  '0x403186136d08cbf5803cf1cd8d44acd756e190e9': 'Scam_Token_0x403186136d08cbf5803cf1cd8d44acd756e190e9',
+  '0x6153ec1fddfefaab8258277298d0b6eb5009cbe6': 'Scam_Token_0x6153ec1fddfefaab8258277298d0b6eb5009cbe6',
+  '0x57e5cc34a679047287ec0a4c02fe8525c5a62a89': 'Scam_Token_0x57e5cc34a679047287ec0a4c02fe8525c5a62a89',
+  '0x33bd27bafef4459613140323f87cd7802ed133ca': 'Scam_Token_0x33bd27bafef4459613140323f87cd7802ed133ca',
+  '0x7002468309347b54480e2231c4a6487d38a18821': 'Scam_Token_0x7002468309347b54480e2231c4a6487d38a18821'
 }
 
 const CONTRACT_TO_ADDRESS = Object.fromEntries(Object.entries(ADDRESS_TO_CONTRACT).map(([id, value]) => [value, id]))
@@ -2049,7 +2071,10 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
       // Scam token airdrops (ERC20)
       } else if (
         txGroup.erc20.length === 1 &&
-        txGroup.erc20[0].toAddress === address &&
+        (
+          txGroup.erc20[0].toAddress === address ||
+          txGroup.erc20[0].fromAddress === address
+        ) &&
         txGroup.erc20[0].token.startsWith('Scam_') &&
         !txGroup.internal.length &&
         !txGroup.erc721.length &&
