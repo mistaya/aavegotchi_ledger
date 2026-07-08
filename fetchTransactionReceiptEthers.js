@@ -13,8 +13,7 @@ module.exports = async function (provider, transactionId) {
     // console.log({ transaction })
     await writeJsonFile(cacheFilePath, transaction)
   } else {
-    console.error(`Couldn't fetch transaction receipt data for ${transactionId}`)
-    console.error(response)
+    console.error(`Couldn't fetch transaction receipt data for ${transactionId} (if the tx id is valid, try a different RPC)`)
   }
   return transaction
 }

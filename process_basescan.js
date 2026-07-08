@@ -7,6 +7,9 @@ const ethers = require('ethers')
 // Don't use exponential notation
 BigNumber.config({ EXPONENTIAL_AT: [-100, 100] })
 
+// https://chainlist.org/
+const RPC_PROVIDER = 'https://base.meowrpc.com'
+
 const ERC1155_PRICES_FILENAME = './prices/erc1155PricesBase.json'
 
 const SCAM_DUST_FROM_ADDRESSES = [
@@ -42,7 +45,27 @@ const ADDRESS_TO_TOKEN = {
   '0xb8ac1e065924c11ac2084150bd46142173794ad6': 'Scam_Token_ERC20TOKEN_0xb8ac1e065924c11ac2084150bd46142173794ad6',
   '0x79624893f8fbd6c6e362fdb60832be71a03ce61f': 'Scam_Token_ERC20TOKEN_0x79624893f8fbd6c6e362fdb60832be71a03ce61f',
   '0xa2e78aabef4cd79f554991845a17d3c30282f180': 'Scam_Token_ERC20MWXAI_0xa2e78aabef4cd79f554991845a17d3c30282f180',
-  '0x9765eaa10b7416da46a5f3de7f3f55ccfa12ce91': 'Scam_Token_ERC20IRCLETOKENDISTRIBUTION_0x9765eaa10b7416da46a5f3de7f3f55ccfa12ce91'
+  '0x9765eaa10b7416da46a5f3de7f3f55ccfa12ce91': 'Scam_Token_ERC20IRCLETOKENDISTRIBUTION_0x9765eaa10b7416da46a5f3de7f3f55ccfa12ce91',
+  '0xd0f929534c5a05aeda1f61cdcede6dcb7420956f': 'Scam_Token_ERC20TOKEN_0xd0f929534c5a05aeda1f61cdcede6dcb7420956f',
+  '0x4f4ded4b99f3c76fa9af75275b545e807e252540': 'Scam_Token_ERC20DeepSeek_0x4f4ded4b99f3c76fa9af75275b545e807e252540',
+  '0x36a280467bd6e068ae8edeb5c252dddeae04f7a3': 'Scam_Token_ERC20RAD_0x36a280467bd6e068ae8edeb5c252dddeae04f7a3',
+  '0x05d166179482f021e1e53e3a4c318a4982d46374': 'Scam_Token_ERC20SUPERMARKET_0x05d166179482f021e1e53e3a4c318a4982d46374',
+  '0xcce83b5e7b2ccb822a3d990847ec48e455766585': 'Scam_Token_ERC20Vespera_0xcce83b5e7b2ccb822a3d990847ec48e455766585',
+  '0x16b192d675e71a240e2fd3476aff7fca4ad30d0a': 'Scam_Token_ERC20Ape_0x16b192d675e71a240e2fd3476aff7fca4ad30d0a',
+  '0xa0c2d9efe55bc51e9bd2b70d23cbb8cc6daa01a6': 'Scam_Token_ERC20Link_0xa0c2d9efe55bc51e9bd2b70d23cbb8cc6daa01a6',
+  '0x6c338c5a56f68ca95ffebc08a03e1a4e378b7ce5': 'Scam_Token_ERC20Order_0x6c338c5a56f68ca95ffebc08a03e1a4e378b7ce5',
+  '0xc0eeb85324765b330470c809950594bb3d057e38': 'Scam_Token_ERC20Planet_0xc0eeb85324765b330470c809950594bb3d057e38',
+  '0x50b940f67e8472a4ab680b224ecb371cbc1bac37': 'Scam_Token_ERC20Spell_0x50b940f67e8472a4ab680b224ecb371cbc1bac37',
+  '0x84a9b3da5b9ced05dd0a9f833f6a3925410744ae': 'Scam_Token_ERC20Crispy_0x84a9b3da5b9ced05dd0a9f833f6a3925410744ae',
+  '0x7dfce1427d1cfa63d5a8e5ba10cfe3b9268a7628': 'Scam_Token_ERC20Robots_0x7dfce1427d1cfa63d5a8e5ba10cfe3b9268a7628',
+  '0x30be92b600a1dee642b71c24c67bfdeee114f663': 'Scam_Token_ERC20BOT_0x30be92b600a1dee642b71c24c67bfdeee114f663',
+  '0x7a8d04d1a90b23d593e3ddaa2b7da1b621a54fbf': 'Scam_Token_ERC20Cx330_0x7a8d04d1a90b23d593e3ddaa2b7da1b621a54fbf',
+  '0xcc6e9c691ae9a44aa6f0e9eb88d809d13d13a021': 'Scam_Token_ERC20Nyx_0xcc6e9c691ae9a44aa6f0e9eb88d809d13d13a021',
+  '0x4579218efe5b33fa84f4c78b419eae366d5aa419': 'Scam_Token_ERC20Nora_0x4579218efe5b33fa84f4c78b419eae366d5aa419',
+  '0x8ad10ce66f23a6de038cf817cd5a406ea45cff70': 'Scam_Token_ERC20Aurora_0x8ad10ce66f23a6de038cf817cd5a406ea45cff70',
+  '0x496c064de8a189920219005a7e76bafa1bea5902': 'Scam_Token_ERC20Journeyer_0x496c064de8a189920219005a7e76bafa1bea5902',
+  '0x69369aabc6b285ee29eaf601d0dbb433865f025d': 'Scam_Token_ERC20Ace_0x69369aabc6b285ee29eaf601d0dbb433865f025d',
+  '0xf7e12e72486f0e3fb85da3d37099f55a790413e9': 'Scam_Token_ERC20Soul_0xf7e12e72486f0e3fb85da3d37099f55a790413e9'
 }
 const TOKEN_TO_ADDRESS = Object.fromEntries(Object.entries(ADDRESS_TO_TOKEN).map(([id, value]) => [value, id]))
 
@@ -2034,7 +2057,7 @@ module.exports.processExports = async (address, fileExport, fileExportInternal, 
 
   const gotchiVaultAbi = await readJsonFile('./gotchiVaultAbi.json')
   const gotchiVaultIface = new ethers.utils.Interface(gotchiVaultAbi)
-  const provider = new ethers.providers.JsonRpcProvider('https://base-rpc.publicnode.com')
+  const provider = new ethers.providers.JsonRpcProvider(RPC_PROVIDER)
 
   // Fetch transactions for gotchiverseInstallationsEquipped, so we can look up the land
   for (const equippedEvent of data.gotchiverseInstallationsEquipped) {
